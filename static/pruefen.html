@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tag-Prüfung</title>
+<style>
+:root{--grund:#0d0f12;--blatt:#14171c;--linie:#2b313a;--text:#ece9e4;
+  --leise:#b6bcc6;--still:#949ca8;--akzent:#d4b678;--rot:#f08f89;--orange:#f0b273}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--grund);color:var(--text);
+  font:400 15px/1.55 ui-sans-serif,system-ui,-apple-system,sans-serif;
+  padding:clamp(1rem,3vw,2.5rem)}
+.huelle{max-width:1500px;margin:0 auto}
+h1{font:600 1.7rem/1.2 ui-serif,Georgia,serif;margin-bottom:.3rem}
+.unter{color:var(--leise);font-size:.95rem;margin-bottom:1.4rem}
+.unter a{color:var(--akzent)}
+.warnkasten{border:1px solid #7d2f2b;background:rgba(160,52,46,.12);
+  border-radius:4px;padding:1rem 1.2rem;margin-bottom:1.6rem;max-width:88ch}
+.warnkasten b{color:var(--rot)}
+.warnkasten p{margin-top:.5rem;color:var(--leise);font-size:.95rem}
+.leiste{display:flex;gap:.7rem;flex-wrap:wrap;align-items:center;
+  padding-bottom:1rem;border-bottom:1px solid var(--linie);margin-bottom:.4rem}
+select,input,button,a.knopf{background:var(--blatt);color:var(--text);
+  border:1px solid var(--linie);border-radius:3px;padding:.45rem .7rem;
+  font:inherit;font-size:.9rem;text-decoration:none}
+button,a.knopf{cursor:pointer}
+button:hover,a.knopf:hover,button.an{border-color:var(--akzent);color:var(--akzent)}
+label{color:var(--still);font-size:.82rem;letter-spacing:.06em;text-transform:uppercase}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:.78rem;letter-spacing:.11em;text-transform:uppercase;
+  color:var(--still);font-weight:600;padding:.6rem .5rem;
+  border-bottom:1px solid var(--linie);position:sticky;top:0;background:var(--grund)}
+td{padding:.55rem .5rem;border-bottom:1px solid rgba(43,49,58,.6);
+  font-size:.93rem;vertical-align:top}
+tr:hover td{background:rgba(255,255,255,.02)}
+.pkt{display:inline-block;min-width:2.8rem;text-align:center;padding:.16rem .45rem;
+  border-radius:3px;font-weight:600;font-size:.9rem;border:1px solid}
+.hoch  {color:var(--rot);border-color:#7d2f2b;background:rgba(160,52,46,.18)}
+.mittel{color:var(--orange);border-color:#7d5324;background:rgba(160,96,36,.15)}
+.niedrig{color:#f2dd97;border-color:#736327;background:rgba(150,128,48,.13)}
+.gruende{color:var(--leise);font-size:.88rem;margin-top:.3rem}
+.gruende li{margin-left:1.1rem;margin-top:.12rem}
+.tagwert{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.86rem;
+  color:var(--leise);overflow-wrap:anywhere}
+.hinweis{margin-top:1.8rem;padding-top:1rem;border-top:1px solid var(--linie);
+  color:var(--still);font-size:.88rem;line-height:1.6;max-width:88ch}
+</style>
+</head>
+<body>
+<div class="huelle">
+  <h1>Verdächtige Tags</h1>
+  <div class="unter"><span id="zahlen">lädt …</span> ·
+    <a href="/">zur Now-Playing-Anzeige</a> · <a href="/dr">DR-Übersicht</a></div>
+
+  <div class="warnkasten">
+    <b>Dies ist ein Bericht. Es wurde nichts geändert.</b>
+    <p>Die Liste nennt Alben, deren Tags nicht zum Künstler zu passen scheinen.
+    Jeder Eintrag ist ein <em>Verdacht</em>, kein Urteil: Ein Labelwechsel kann
+    echt sein, eine Wiederveröffentlichung ein junges Copyright-Jahr tragen,
+    ein Gastmusiker die Besetzung dominieren. Vor einer Korrektur bitte den
+    Einzelfall ansehen.</p>
+  </div>
+
+  <div class="leiste">
+    <label for="stufe">Verdacht</label>
+    <select id="stufe">
+      <option value="">alle</option>
+      <option value="hoch">hoch (ab 90)</option>
+      <option value="mittel">mittel (60–89)</option>
+      <option value="niedrig">niedrig (40–59)</option>
+    </select>
+    <input id="suche" type="search" placeholder="Künstler, Album oder Label …" style="min-width:18rem">
+    <a class="knopf" href="/api/verdacht.csv" download>CSV herunterladen</a>
+  </div>
+
+  <table>
+    <thead><tr>
+      <th style="width:5rem">Punkte</th>
+      <th>Album</th>
+      <th style="width:28%">Tags in der Datei</th>
+      <th style="width:34%">Warum verdächtig</th>
+    </tr></thead>
+    <tbody id="zeilen"></tbody>
+  </table>
+
+  <div class="hinweis">
+    <p><b>Gewichtung.</b> 40 Punkte für ein Label, das bei diesem Künstler ein
+    Einzelfall ist, während seine übrigen Alben auf einem anderen liegen.
+    30 für eine Besetzung, in der der Künstler selbst nicht vorkommt. 20 für ein
+    Label, das in der ganzen Sammlung höchstens zweimal auftaucht und kein
+    bekanntes Wiederveröffentlichungs-Haus ist. 15 für einen Widerspruch
+    zwischen Komponist und Besetzung. 10 für ein Copyright-Jahr mehr als
+    15 Jahre nach der Veröffentlichung — dieses Merkmal allein sagt nichts,
+    es trifft auf 663 Alben zu und ist meist korrekt.</p>
+    <p style="margin-top:.7rem">Der Auslöser war Queen – <em>News Of The World</em>:
+    Label „Skary Ink", Copyright „2025 Skary Ink", und eine Besetzung aus
+    Namen, die mit Queen nichts zu tun haben.</p>
+  </div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => (s??"").toString().replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+let alle = [];
+
+async function laden(){
+  const d = await (await fetch("/api/pruefen")).json();
+  alle = d.alben || [];
+  $("#zahlen").textContent = d.hinweis
+    ? d.hinweis
+    : `${d.verdaechtig} von ${d.gesamt} Alben auffällig` +
+      (d.stand ? ` · geprüft ${new Date(d.stand*1000).toLocaleString("de-DE")}` : "");
+  zeichne();
+}
+
+function zeichne(){
+  const q = $("#suche").value.toLowerCase().trim();
+  const st = $("#stufe").value;
+  let liste = alle;
+  if(st) liste = liste.filter(a => a.stufe === st);
+  if(q) liste = liste.filter(a =>
+    [a.artist,a.album,a.label].some(x => (x||"").toLowerCase().includes(q)));
+
+  $("#zeilen").innerHTML = liste.map(a => `
+    <tr>
+      <td><span class="pkt ${a.stufe}">${a.punkte}</span></td>
+      <td><b>${esc(a.artist)}</b><br>${esc(a.album)}
+          <span style="color:var(--still)">${esc(a.jahr)}</span></td>
+      <td class="tagwert">
+        ${a.label ? "Label: " + esc(a.label) + "<br>" : ""}
+        ${a.copyright ? "Copyright: " + esc(a.copyright.slice(0,70)) + "<br>" : ""}
+        ${a.personnel ? "Besetzung: " + esc(a.personnel.slice(0,110)) : ""}
+      </td>
+      <td><ul class="gruende">${a.gruende.map(g => "<li>"+esc(g)+"</li>").join("")}</ul></td>
+    </tr>`).join("");
+}
+$("#stufe").onchange = zeichne;
+$("#suche").oninput = zeichne;
+laden();
+</script>
+</body>
+</html>

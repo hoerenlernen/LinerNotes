@@ -1,0 +1,1966 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Liner Notes</title>
+<style>
+/* ---------------------------------------------------------------------------
+   Ruhiges, dunkles Blatt. Gelesen wird aus zwei bis drei Metern - iPad quer,
+   Mac, Fernseher. Daher grosse Grade und hohe Kontraste.
+
+   Zu den Farben: --leise und --still lagen vorher bei #9aa1ab und #6b7280.
+   #6b7280 erreicht auf diesem Grund nur etwa 3,5:1 und fiel damit unter die
+   WCAG-AA-Schwelle von 4,5:1 fuer kleinen Text. Beide sind angehoben, die
+   kleinen Grade zusaetzlich vergroessert.
+--------------------------------------------------------------------------- */
+:root{
+  --grund:#0d0f12; --blatt:#14171c; --linie:#2b313a;
+  --text:#ece9e4; --leise:#b6bcc6; --still:#949ca8; --akzent:#d4b678;
+  --gruen:#7fc98a; --orange:#f0b273; --rot:#f08f89;
+  --rand:clamp(1.25rem,4vw,3.5rem);
+  /* Eigener Rotton fuer die Merkliste: waermer als die Warnfarbe, damit
+     ein gemerkter Titel nicht wie ein Fehler aussieht. */
+  --herz:#e2565c;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:var(--grund); color:var(--text); min-height:100vh;
+  font:400 clamp(16px,1.05vw + 12px,21px)/1.65 ui-serif,Georgia,"Iowan Old Style",serif;
+  padding:var(--rand);
+}
+/* Kein overflow-x:hidden: es verbirgt Ueberlaeufe, statt sie zu loesen -
+   und genau das liess links Inhalt verschwinden. */
+.huelle{width:min(1600px,100%);margin-inline:auto}
+.sans{font-family:ui-sans-serif,system-ui,-apple-system,sans-serif}
+
+/* ---------- Schalter oben rechts ---------- */
+.schalter{display:flex;gap:.4rem;justify-content:flex-end;
+  margin:0 0 1.2rem;flex-wrap:wrap}
+.schalter button{font:inherit;font-size:.78rem;font-family:ui-sans-serif,system-ui,sans-serif;
+  letter-spacing:.06em;text-transform:uppercase;color:var(--still);
+  background:rgba(20,23,28,.82);border:1px solid var(--linie);border-radius:3px;
+  padding:.3rem .6rem;cursor:pointer;backdrop-filter:blur(6px)}
+.schalter button:hover{color:var(--text);border-color:var(--still)}
+.schalter button.an{color:var(--grund);background:var(--akzent);border-color:var(--akzent)}
+
+/* ---------- Ansicht festhalten (2.4) ---------- */
+#haltehinweis{display:none;margin:0 0 1.4rem;padding:.7rem 1rem;
+  border:1px solid var(--akzent);border-left-width:3px;border-radius:4px;
+  background:rgba(212,182,120,.07);color:var(--leise);font-size:.95rem}
+#haltehinweis.an{display:block}
+#haltehinweis b{color:var(--akzent);font-weight:500}
+#haltehinweis button{margin-left:.6rem;font:inherit;font-size:.86rem;
+  color:var(--grund);background:var(--akzent);border:0;border-radius:3px;
+  padding:.2rem .6rem;cursor:pointer}
+
+/* ---------- Bedienleiste (2b) ---------- */
+/* Zurueckhaltend: keine Farbflaechen, keine grossen Knoepfe. Sie soll den
+   ruhigen Charakter der Seite nicht zerstoeren - erkennbar, wenn man sie
+   sucht, unauffaellig, wenn man liest. */
+.bedienung{display:flex;align-items:center;gap:.9rem;flex-wrap:wrap;
+  margin-top:1rem;padding-top:.9rem;border-top:1px solid var(--linie)}
+.bedienung[hidden]{display:none}
+.bknopf{font:inherit;font-size:1rem;line-height:1;color:var(--leise);
+  background:transparent;border:1px solid var(--linie);border-radius:3px;
+  padding:.42rem .7rem;cursor:pointer;min-width:2.5rem;
+  transition:color .15s,border-color .15s,opacity .15s}
+.bknopf:hover:not(:disabled){color:var(--text);border-color:var(--still)}
+.bknopf:disabled{opacity:.3;cursor:default}
+.bknopf.arbeitet{opacity:.5;cursor:progress}
+.bknopf.gross{font-size:1.15rem;min-width:3.1rem;color:var(--text)}
+.btrenner{width:1px;height:1.5rem;background:var(--linie)}
+.blaut{display:flex;align-items:center;gap:.5rem}
+.blaut .wert{font-family:ui-sans-serif,system-ui,sans-serif;font-size:.86rem;
+  color:var(--still);min-width:3.4rem;text-align:center;
+  font-variant-numeric:tabular-nums}
+.blaut .wert b{color:var(--leise);font-weight:500}
+.blaut.stumm .wert b{color:var(--orange)}
+.bknopf.stumm{font-size:.86rem;min-width:3.2rem;letter-spacing:.04em}
+.bknopf.stumm.an{color:var(--orange);border-color:var(--orange)}
+.bmeldung{font-family:ui-sans-serif,system-ui,sans-serif;font-size:.84rem;
+  color:var(--orange);margin-left:.2rem}
+/* Die Fortschrittsleiste wird anklickbar - ohne ihr Aussehen zu aendern. */
+.zeile.bedienbar .balken{cursor:pointer;height:6px;margin:-1px 0}
+.zeile.bedienbar .balken:hover{background:rgba(255,255,255,.16)}
+body.sofa .bedienung{gap:1.2rem}
+body.sofa .bknopf{font-size:1.25rem;padding:.55rem .95rem;min-width:3.2rem}
+body.sofa .bknopf.gross{font-size:1.5rem;min-width:4rem}
+body.sofa .blaut .wert{font-size:1.05rem;min-width:4.4rem}
+/* Im Ruhebild nicht hervorstechen */
+body.ruhebild .bedienung{opacity:.3}
+
+/* ---------- Suche und Einstieg (2b, Punkt 8) ---------- */
+/* Bewusst schmal gehalten: ein Suchfeld, flache Ergebnisse, zwei Knöpfe
+   je Treffer. Keine Kacheln, keine Hierarchien - dafür bleibt Kazoo. */
+#s-suche h2{margin-bottom:.8rem}
+.suchzeile{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap}
+#suchfeld{flex:1;min-width:14rem;font:inherit;font-size:1rem;
+  font-family:ui-sans-serif,system-ui,sans-serif;color:var(--text);
+  background:var(--blatt);border:1px solid var(--linie);border-radius:3px;
+  padding:.5rem .75rem}
+#suchfeld:focus{outline:none;border-color:var(--akzent)}
+#suchfeld::placeholder{color:var(--still)}
+.suchhinweis{font-family:ui-sans-serif,system-ui,sans-serif;font-size:.84rem;
+  color:var(--still)}
+#suchergebnis{margin-top:1rem}
+.streffer{padding:.7rem 0;border-bottom:1px solid var(--linie)}
+.streffer .kopf{display:flex;gap:.8rem;align-items:baseline;flex-wrap:wrap}
+.streffer .al{font-size:1.06rem}
+.streffer .ar{color:var(--leise);font-size:.95rem}
+.streffer .nz{color:var(--still);font-size:.82rem;
+  font-family:ui-sans-serif,system-ui,sans-serif}
+.streffer .tun{display:flex;gap:.45rem;margin-left:auto;flex-wrap:wrap}
+.streffer button{font-family:ui-sans-serif,system-ui,sans-serif;font-size:.82rem;
+  color:var(--leise);background:transparent;border:1px solid var(--linie);
+  border-radius:3px;padding:.28rem .6rem;cursor:pointer}
+.streffer button:hover:not(:disabled){color:var(--text);border-color:var(--still)}
+.streffer button:disabled{opacity:.4;cursor:default}
+.streffer .tl{margin-top:.4rem;color:var(--still);font-size:.88rem;
+  font-family:ui-sans-serif,system-ui,sans-serif}
+#verlauf .vz{display:flex;gap:.8rem;align-items:baseline;padding:.4rem 0;
+  border-bottom:1px solid var(--linie);font-size:1rem}
+#verlauf .vz .ar{color:var(--leise);font-size:.9rem}
+#verlauf .vz .wann{margin-left:auto;color:var(--still);font-size:.82rem;
+  font-family:ui-sans-serif,system-ui,sans-serif}
+#verlauf .vz button{font-family:ui-sans-serif,system-ui,sans-serif;
+  font-size:.8rem;color:var(--leise);background:transparent;
+  border:1px solid var(--linie);border-radius:3px;padding:.22rem .55rem;
+  cursor:pointer}
+/* Klickbare Trackzeile (Punkt 6) */
+body.springbar li .name{cursor:pointer}
+body.springbar li:hover{background:rgba(255,255,255,.035)}
+body.lesenur li .name{cursor:default}
+body.sofa #s-suche,body.sofa #s-verlauf{display:none}
+
+/* ---------- Merkliste ---------- */
+.bknopf.herz{font-size:1.05rem;letter-spacing:0}
+.bknopf.herz.an{color:var(--herz);border-color:var(--herz)}
+/* Herz je Trackzeile: unauffaellig, bis es gesetzt ist */
+li .fav{justify-self:end;font:inherit;font-size:.95rem;
+  line-height:1;background:transparent;border:0;padding:.1rem .35rem;
+  color:var(--linie);cursor:pointer;opacity:0;transition:opacity .15s,color .15s}
+li:hover .fav,li .fav.an,li .fav:focus-visible{opacity:1}
+li .fav.an{color:var(--herz)}
+li .fav:hover{color:var(--herz)}
+body.lesenur li .fav{display:none}
+#favliste{margin-top:.6rem}
+#favliste .fz{display:grid;grid-template-columns:minmax(0,1fr) auto auto;
+  gap:1rem;align-items:baseline;padding:.42rem .2rem;
+  border-bottom:1px solid var(--linie);font-size:1rem}
+#favliste .fz .wer{color:var(--leise);font-size:.88rem}
+#favliste .fz .weg{color:var(--orange);font-size:.8rem}
+#favliste .leer{color:var(--still);font-size:.98rem;padding:.5rem 0}
+.favkopf{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;
+  margin-bottom:.4rem}
+.favkopf a,.favkopf button{font-family:ui-sans-serif,system-ui,sans-serif;
+  font-size:.86rem;color:var(--leise);background:transparent;
+  border:1px solid var(--linie);border-radius:3px;padding:.3rem .65rem;
+  cursor:pointer;text-decoration:none}
+.favkopf a:hover,.favkopf button:hover{color:var(--text);border-color:var(--still)}
+.favzahl{font-family:ui-sans-serif,system-ui,sans-serif;font-size:.8rem;
+  letter-spacing:.06em;text-transform:uppercase;color:var(--still)}
+
+/* ---------- Werkgruppen bei Klassik (2.1) ---------- */
+.werk{margin:1.5rem 0 .5rem;font-family:ui-sans-serif,system-ui,sans-serif;
+  font-size:.92rem;font-weight:500;letter-spacing:.02em;color:var(--akzent)}
+.werk:first-child{margin-top:0}
+.mitwirkende{margin-top:.5rem;font-size:1rem;color:var(--leise)}
+.mitwirkende .rolle{color:var(--still);font-size:.82rem;
+  font-family:ui-sans-serif,system-ui,sans-serif;letter-spacing:.06em;
+  text-transform:uppercase;margin-right:.4rem}
+
+/* ---------- Schlagworte (Fehler B) ---------- */
+.schlagworte{margin-top:.9rem;display:flex;flex-wrap:wrap;gap:.4rem;align-items:baseline}
+.schlagwort{font-size:.88rem;color:var(--leise);border:1px solid var(--linie);
+  border-radius:99px;padding:.15rem .7rem}
+.schlagwort .sw{color:var(--still);font-size:.76rem;
+  font-family:ui-sans-serif,system-ui,sans-serif;letter-spacing:.06em;
+  text-transform:uppercase;margin-right:.35rem}
+
+/* ---------- Aufklappbereich Ausgabe (2.3) ---------- */
+#ausgabe{margin-top:1.1rem;border-top:1px solid var(--linie);padding-top:.8rem}
+#ausgabe summary{cursor:pointer;font-family:ui-sans-serif,system-ui,sans-serif;
+  font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;color:var(--still);
+  list-style:none}
+#ausgabe summary::-webkit-details-marker{display:none}
+#ausgabe summary::before{content:"▸ ";color:var(--still)}
+#ausgabe[open] summary::before{content:"▾ "}
+#ausgabe summary:hover{color:var(--leise)}
+#ausgabe .inhalt{margin-top:.9rem}
+
+/* ---------- Sofa-Ansicht (2.5) ---------- */
+/* Fuer 2,5-3 m Abstand: groessere Schrift, weniger Beiwerk, ruhigere
+   Flaechen. Vorlage fuer die spaetere tvOS-App. */
+body.sofa{font-size:clamp(22px,1.7vw + 14px,34px);--rand:clamp(2rem,5vw,5rem)}
+body.sofa .huelle{width:min(1900px,100%)}
+body.sofa h1{font-size:clamp(2.6rem,4.4vw,4.6rem)}
+body.sofa .kuenstler{font-size:clamp(1.5rem,2.3vw,2.2rem)}
+/* Audioqualitaet, Bitperfekt und DR bleiben - das sind die drei
+   Angaben, die beim Hoeren zaehlen. Weg sind Pressungsdetails,
+   Nachgeschlagenes und Verweise, die man aus 3 m nicht anklickt. */
+body.sofa #meta,body.sofa #ausgabe,body.sofa #s-extern,
+body.sofa #tagwarnung,body.sofa .herkunft,body.sofa .fuss a,
+body.sofa #s-credits{display:none}
+body.sofa .technik{gap:.9rem}
+body.sofa .technik .plakette{font-size:.92rem}
+body.sofa .laufttitel{font-size:clamp(2rem,3.2vw,3.2rem);line-height:1.2}
+body.sofa .laeuft{padding:1.6rem 1.9rem}
+body.sofa .zustand{font-size:1rem}
+body.sofa li{font-size:1.15rem;padding:.6rem .9rem}
+body.sofa .werk{font-size:1.15rem;margin-top:2rem}
+body.sofa .fliess{font-size:1.1rem;max-width:56ch}
+body.sofa h2{font-size:1.05rem}
+body.sofa .uhr{font-size:1.1rem}
+
+/* ---------- Einbrennschutz (2.6) ---------- */
+/* Statische helle Flaechen auf OLED/Plasma vermeiden. Drei Stufen:
+   a) im Betrieb wandert das Layout minimal (unsichtbar, aber es bewegt
+      die Pixelgrenzen), b) nach 5 Min Pause deutlich dunkler,
+   c) bei Stopp eine Ruheansicht ganz ohne helle Flaechen. */
+.huelle{transition:transform 40s linear}
+body.pausiert-lang #karte{opacity:.22;transition:opacity 4s ease}
+body.pausiert-lang .laeuft{background:transparent;border-left-color:var(--linie)}
+body.ruhebild #karte{opacity:.14;transition:opacity 3s ease}
+body.ruhebild .cover{box-shadow:none}
+body.ruhebild .laeuft,body.ruhebild li.jetzt{background:transparent}
+body.ruhebild .schalter{opacity:.25}
+body.sofa .schalter{margin-bottom:1.8rem}
+body.sofa .schalter button{font-size:.95rem;padding:.45rem .9rem}
+@media (prefers-reduced-motion:reduce){
+  .huelle{transition:none}
+}
+
+/* ---------- Leerlauf: letztes Album, abgedunkelt ---------- */
+#karte.ruht{opacity:.42;transition:opacity .6s}
+#ruhehinweis{display:none;position:sticky;top:0;z-index:5;margin:-.4rem 0 1.6rem;
+  padding:.7rem 1rem;border:1px solid var(--linie);border-radius:4px;
+  background:var(--blatt);color:var(--leise);font-size:.95rem}
+#ruhehinweis.an{display:block}
+#ruhehinweis b{color:var(--text);font-weight:500}
+
+/* ---------- Kopf ---------- */
+.kopf{display:grid;grid-template-columns:minmax(260px,36%) minmax(0,1fr);
+  gap:clamp(1.5rem,3vw,3.5rem);align-items:start}
+@media (max-width:860px){.kopf{grid-template-columns:1fr}}
+
+/* Platz fuer das Cover ist reserviert - so springt das Layout beim
+   Titelwechsel nicht, waehrend das Bild nachlaedt. */
+.cover{position:relative;aspect-ratio:1;border-radius:4px;overflow:hidden;
+  background:var(--blatt);box-shadow:0 1.5rem 3.5rem rgba(0,0,0,.55)}
+.cover img{width:100%;height:100%;object-fit:cover;display:block;
+  opacity:0;transition:opacity .35s}
+.cover img.da{opacity:1}
+
+h1{font-size:clamp(1.9rem,3.2vw,3.1rem);line-height:1.14;font-weight:600;
+  letter-spacing:-.01em;min-height:1.14em}
+.kuenstler{font-size:clamp(1.15rem,1.7vw,1.55rem);color:var(--akzent);margin-top:.35rem}
+
+/* Metadaten als zweispaltiges Raster. Label und Wert sind damit fest
+   verbunden und koennen nie getrennt umbrechen - das war der Fehler der
+   vorigen Fassung, wo "Land" und "US" auf zwei Zeilen rutschten. Auch die
+   Trennpunkte sind weg; die Abstaende ergeben sich aus dem Raster. */
+.meta{margin-top:1.3rem;display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(13.5rem,1fr));
+  gap:.7rem 1.8rem}
+.mp{display:flex;flex-direction:column;gap:.1rem}
+.mp dt{font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--still);font-family:ui-sans-serif,system-ui,sans-serif}
+.mp dd{font-size:1rem;color:var(--text);overflow-wrap:anywhere}
+.mp dd .extern{color:var(--still);font-size:.8rem;margin-left:.35rem;
+  font-family:ui-sans-serif,system-ui,sans-serif;white-space:nowrap}
+
+/* ---------- Es läuft ---------- */
+.laeuft{margin-top:1.7rem;padding:1.1rem 1.3rem;border-left:3px solid var(--akzent);
+  background:rgba(212,182,120,.06);border-radius:0 4px 4px 0}
+.laeuft.pause{border-left-color:var(--orange);background:rgba(240,178,115,.055)}
+.laeuft.stopp{border-left-color:var(--still);background:rgba(148,156,168,.05)}
+.zustand{display:flex;align-items:center;gap:.5rem;font-size:.8rem;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--still);
+  font-family:ui-sans-serif,system-ui,sans-serif}
+.zustand .ikon{font-size:.9rem}
+.laufttitel{font-size:clamp(1.35rem,2.3vw,2rem);margin-top:.3rem;line-height:1.24;
+  font-weight:500;min-height:1.24em}
+.laufinfo{margin-top:.35rem;color:var(--leise);font-size:.95rem;
+  font-family:ui-sans-serif,system-ui,sans-serif}
+
+.fortschritt{margin-top:.9rem;display:flex;align-items:center;gap:.8rem}
+.balken{flex:1;height:4px;background:rgba(255,255,255,.1);border-radius:2px;overflow:hidden}
+.balken i{display:block;height:100%;background:var(--akzent);width:0;
+  transition:width .9s linear}
+.laeuft.pause .balken i,.laeuft.stopp .balken i{background:var(--still);transition:none}
+.uhr{font-size:.92rem;color:var(--leise);font-variant-numeric:tabular-nums;
+  font-family:ui-sans-serif,system-ui,sans-serif;white-space:nowrap}
+
+/* ---------- Qualität und Bitperfekt ---------- */
+.technik{margin-top:1.1rem;display:flex;gap:.7rem;flex-wrap:wrap;align-items:center}
+.plakette{display:inline-flex;align-items:baseline;gap:.4rem;padding:.34rem .75rem;
+  border-radius:3px;border:1px solid;font-family:ui-sans-serif,system-ui,sans-serif;
+  font-size:.88rem;font-weight:500}
+.plakette .wert{font-size:1.06rem;font-weight:600}
+.pl-neutral{color:var(--leise);border-color:var(--linie);background:rgba(255,255,255,.03)}
+.pl-gut    {color:var(--gruen);border-color:#2f6b39;background:rgba(58,122,64,.14)}
+.pl-warn   {color:var(--orange);border-color:#7d5324;background:rgba(160,96,36,.14)}
+.dr-rot   {color:var(--rot);border-color:#7d2f2b;background:rgba(160,52,46,.16)}
+.dr-orange{color:var(--orange);border-color:#7d5324;background:rgba(160,96,36,.14)}
+.dr-gelb  {color:#f2dd97;border-color:#736327;background:rgba(150,128,48,.13)}
+.dr-gruen {color:var(--gruen);border-color:#2f6b39;background:rgba(58,122,64,.14)}
+.hinweistext{margin-top:.5rem;color:var(--leise);font-size:.9rem;
+  font-family:ui-sans-serif,system-ui,sans-serif}
+.hinweistext.warn{color:var(--orange)}
+
+/* ---------- Abschnitte ---------- */
+section{margin-top:clamp(2.2rem,4vw,3.4rem)}
+h2{font-size:.82rem;letter-spacing:.18em;text-transform:uppercase;color:var(--leise);
+  font-family:ui-sans-serif,system-ui,sans-serif;font-weight:600;
+  padding-bottom:.5rem;border-bottom:1px solid var(--linie);margin-bottom:1.2rem}
+.fliess{font-size:1.04rem;line-height:1.78;max-width:72ch;white-space:pre-wrap}
+.spalten{column-width:25rem;column-gap:3rem}
+.block{break-inside:avoid;margin-bottom:1.8rem}
+.block .name{font-size:.8rem;letter-spacing:.11em;text-transform:uppercase;
+  color:var(--akzent);font-family:ui-sans-serif,system-ui,sans-serif;margin-bottom:.35rem}
+.herkunft{margin-top:.55rem;font-size:.86rem;color:var(--still);
+  font-family:ui-sans-serif,system-ui,sans-serif}
+.herkunft a{color:var(--leise);text-decoration:underline;text-underline-offset:2px}
+.herkunft a:hover{color:var(--akzent)}
+.marke{display:inline-block;margin-left:.45rem;padding:.08rem .4rem;border-radius:2px;
+  border:1px solid var(--linie);color:var(--still);font-size:.72rem;
+  letter-spacing:.06em;text-transform:uppercase;vertical-align:.1em}
+.mehr{margin-top:.5rem;background:none;border:1px solid var(--linie);color:var(--leise);
+  border-radius:3px;padding:.32rem .8rem;font:inherit;font-size:.88rem;
+  font-family:ui-sans-serif,system-ui,sans-serif;cursor:pointer}
+.mehr:hover{border-color:var(--akzent);color:var(--akzent)}
+
+/* ---------- Trackliste ---------- */
+ol{list-style:none}
+.disc{font-size:.8rem;letter-spacing:.11em;text-transform:uppercase;color:var(--still);
+  font-family:ui-sans-serif,system-ui,sans-serif;margin:1.4rem 0 .5rem}
+li{display:grid;grid-template-columns:2.8rem minmax(0,1fr) auto auto auto;gap:1rem;
+  align-items:baseline;padding:.46rem .75rem;border-radius:3px;font-size:1rem;
+  scroll-margin-block:35vh}
+li .nr{color:var(--still);font-variant-numeric:tabular-nums;text-align:right;font-size:.94rem}
+li .trdr,li .dauer{color:var(--still);font-variant-numeric:tabular-nums;font-size:.9rem;
+  font-family:ui-sans-serif,system-ui,sans-serif}
+li.jetzt{background:rgba(212,182,120,.13);color:#fff;
+  box-shadow:inset 3px 0 0 var(--akzent)}
+li.jetzt .nr{color:var(--akzent)}
+li.jetzt .name{font-weight:500}
+
+/* Besetzung als Liste: pro Person eine Zeile. Als Fließtext war das
+   praktisch unlesbar, weil Namen und Rollen durch Kommas und Bindestriche
+   ineinanderliefen. */
+.bes{display:grid;gap:.42rem}
+.bes .p{display:grid;grid-template-columns:minmax(9rem,auto) minmax(0,1fr);gap:.2rem 1rem;
+  align-items:baseline}
+@media (max-width:560px){.bes .p{grid-template-columns:1fr}}
+.bes .pn{font-weight:500}
+.bes .pr{color:var(--leise);font-size:.94rem;
+  font-family:ui-sans-serif,system-ui,sans-serif}
+
+/* Quelle ohne jede Titelinfo (AirPlay, analoger Eingang): ruhiger Zustand
+   statt leerem Cover und Gedankenstrich. */
+#nurquelle{display:none;min-height:52vh;flex-direction:column;
+  align-items:center;justify-content:center;gap:.8rem;text-align:center}
+#nurquelle.an{display:flex}
+#nurquelle .qn{font-size:clamp(1.6rem,3vw,2.4rem);font-weight:600}
+#nurquelle .qh{color:var(--leise);font-size:1.02rem;max-width:44ch;line-height:1.6}
+#nurquelle .qf{margin-top:.4rem}
+/* Bei AirPlay liefert der Linn `Seconds`, aber `Duration 0` - es gibt also
+   keine Gesamtdauer und damit keine sinnvolle Leiste. Die laufende Zeit
+   allein zeigt aber, dass etwas passiert; ohne sie sieht der Zustand aus
+   wie eingefroren. */
+#nurquelle .qz{margin-top:.9rem;color:var(--still);font-size:.95rem;
+  font-variant-numeric:tabular-nums;font-family:ui-sans-serif,system-ui,sans-serif}
+
+/* Dezenter Hinweis, wenn die Tags dieses Albums auffällig sind. Bewusst
+   zurückhaltend: Es ist ein Verdacht, kein Urteil. */
+.tagwarnung{margin-top:.9rem;padding:.55rem .85rem;border-radius:3px;
+  border:1px solid #6d4a26;background:rgba(160,96,36,.1);
+  font-family:ui-sans-serif,system-ui,sans-serif;font-size:.9rem;
+  color:var(--orange);display:none}
+.tagwarnung.an{display:block}
+.tagwarnung a{color:var(--orange);text-decoration:underline;text-underline-offset:2px}
+.tagwarnung .det{display:block;margin-top:.25rem;color:var(--leise);font-size:.85rem}
+
+.fuss{margin-top:3.5rem;padding-top:1rem;border-top:1px solid var(--linie);
+  color:var(--still);font-size:.88rem;font-family:ui-sans-serif,system-ui,sans-serif;
+  display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+.fuss a{color:var(--leise);text-decoration:underline;text-underline-offset:2px}
+.fuss a:hover{color:var(--akzent)}
+#punkt{display:inline-block;width:.5rem;height:.5rem;border-radius:50%;
+  background:var(--still);margin-right:.45rem;vertical-align:middle}
+#punkt.live{background:var(--gruen)}
+
+/* ---------------------------------------------------------------- Hören lernen
+   Vorbild ist die DG-App zur Neunten: ein einzeiliger Kommentar unten,
+   links ein Ring, der die Reststandzeit zeigt. Kein Blinken, keine
+   Bewegung - nur Deckkraft, damit nichts vom Hören ablenkt. */
+#hoerleiste{
+  position:fixed; left:0; right:0; bottom:0; z-index:40;
+  display:flex; align-items:center; gap:.9rem;
+  padding:.85rem 1.2rem;
+  background:rgba(18,18,20,.94); color:#eee;
+  border-top:1px solid rgba(255,255,255,.12);
+  font-size:1.02rem; line-height:1.45;
+  opacity:0; transform:none; pointer-events:none;
+  transition:opacity .7s ease;
+}
+#hoerleiste.an{ opacity:1; pointer-events:auto; }
+#hoerleiste .ring{
+  flex:0 0 auto; width:22px; height:22px; border-radius:50%;
+  background:conic-gradient(#d8b25a var(--anteil,0%), rgba(255,255,255,.14) 0);
+  box-shadow:inset 0 0 0 3px rgba(18,18,20,.94);
+}
+#hoerleiste .satz{ flex:1 1 auto; }
+#hoerleiste .instr{
+  flex:0 0 auto; font-size:.82rem; opacity:.72; letter-spacing:.02em;
+}
+#hoerleiste .zu{
+  flex:0 0 auto; background:none; border:0; color:#aaa; cursor:pointer;
+  font-size:1.1rem; padding:0 .2rem;
+}
+body.hoerleiste-an{ padding-bottom:4.2rem; }
+
+/* Abschnitt „Worauf hören" */
+#s-hoeren .hlkopf{
+  display:flex; flex-wrap:wrap; align-items:center; gap:.6rem;
+  margin-bottom:.7rem;
+}
+#s-hoeren .hlschalter button{
+  font:inherit; padding:.22rem .7rem; margin-right:.3rem;
+  border:1px solid rgba(128,128,128,.4); background:transparent;
+  border-radius:999px; cursor:pointer; color:inherit;
+}
+#s-hoeren .hlschalter button.an{
+  background:#d8b25a; border-color:#d8b25a; color:#1a1a1a;
+}
+#s-hoeren .quelle{ font-size:.86rem; opacity:.75; margin-top:.9rem; }
+#s-hoeren ul.achten{ margin:.2rem 0 0 1.1rem; padding:0; }
+#s-hoeren ul.achten li{ margin:.35rem 0; }
+#s-hoeren details.hg{ margin:.5rem 0; }
+#s-hoeren details.hg > summary{ cursor:pointer; font-weight:600; }
+
+/* Ensemble: Orchesterplan schematisch, sonst Liste. Nur wenn Daten da
+   sind - eine leere Buehne ist schlimmer als keine. */
+.ensemble{ margin:.6rem 0; }
+.ensemble .gruppe{ margin:.45rem 0; }
+.ensemble .gname{ font-size:.82rem; opacity:.7; letter-spacing:.04em; }
+/* Aktive Gruppen voll deckend, inaktive deutlich abgedunkelt. Kein
+   Pulsieren, keine Bewegung - nur Deckkraft, ueber eine halbe Sekunde.
+   Auf Zoom, Verschiebung oder Groessenwechsel ist bewusst verzichtet:
+   Bewegung im Blickfeld zieht die Aufmerksamkeit vom Hoeren ab. */
+.ensemble .pult{
+  display:inline-block; margin:.16rem .3rem .16rem 0; padding:.16rem .6rem;
+  border-radius:999px; border:1px solid rgba(128,128,128,.28);
+  font-size:.92rem; opacity:.3;
+  transition:opacity .5s ease, border-color .5s ease;
+}
+.ensemble .pult.aktiv{ opacity:1; border-color:rgba(216,178,90,.8); }
+.buehne{ display:grid; gap:.35rem; margin:.5rem 0; }
+.buehne .reihe{ display:flex; flex-wrap:wrap; justify-content:center; gap:.4rem; }
+.buehne .reihe.streicher{ justify-content:space-between; }
+
+/* Zeichen in der Trackliste */
+#tracks li .hlmarke{
+  flex:0 0 auto; margin-left:.35rem; font-size:.78rem; opacity:.55;
+}
+#tracks li .hlmarke.viele{ opacity:.85; }
+
+body.sofa #hoerleiste{ font-size:1.5rem; padding:1.1rem 1.6rem; }
+body.sofa #hoerleiste .ring{ width:30px; height:30px; }
+
+/* ------------------------------------------------------------- Fussleiste
+   Bedienung bleibt beim Lesen erreichbar, ohne nach oben zu scrollen.
+   Vorbild Qobuz, aber dunkel und ohne Farbverlauf.
+
+   WICHTIG: Der Laufkommentar von „Hören lernen" sitzt IM SELBEN Block,
+   direkt über der Spielleiste. Zwei getrennte feste Elemente am unteren
+   Rand würden einander überlappen, sobald der Kommentar erscheint, und
+   die Leiste bei jedem Ein- und Ausblenden um ihre eigene Höhe
+   springen lassen. Als ein Block wächst und schrumpft er von selbst. */
+#fussleiste{
+  position:fixed; left:0; right:0; bottom:0; z-index:40;
+  background:rgba(14,14,16,.97);
+  border-top:1px solid rgba(255,255,255,.10);
+  backdrop-filter:saturate(1.1) blur(6px);
+}
+#fussleiste #hoerleiste{
+  position:static; border-top:0; background:transparent;
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+#spielleiste{
+  display:flex; align-items:center; gap:1rem;
+  padding:.6rem 1.1rem;
+}
+#spielleiste .fcover{
+  flex:0 0 auto; width:46px; height:46px; border-radius:3px;
+  background:#222; object-fit:cover;
+}
+#spielleiste .ftexte{ flex:1 1 14rem; min-width:0; }
+#spielleiste .ftitel{
+  font-weight:600; white-space:nowrap; overflow:hidden;
+  text-overflow:ellipsis;
+}
+#spielleiste .fkuenstler{
+  font-size:.86rem; opacity:.66; white-space:nowrap;
+  overflow:hidden; text-overflow:ellipsis;
+}
+#spielleiste .fmitte{ flex:2 1 20rem; min-width:8rem; }
+#spielleiste .fplaketten{ flex:0 0 auto; display:flex; gap:.3rem; }
+#spielleiste #fortschritt{ margin:0; }
+#spielleiste #bedienung{ flex:0 0 auto; margin:0; }
+body.hat-fussleiste{ padding-bottom:5.6rem; }
+body.hat-fussleiste.hoerleiste-an{ padding-bottom:9rem; }
+@media (max-width:640px){
+  #spielleiste .fmitte{ display:none; }
+  #spielleiste .fplaketten{ display:none; }
+}
+body.sofa #spielleiste{ padding:.9rem 1.4rem; }
+body.sofa #spielleiste .fcover{ width:64px; height:64px; }
+</style>
+</head>
+<body>
+<div class="huelle">
+
+  <div class="schalter sans">
+    <button id="btn-halten" title="Anzeige beim aktuellen Album festhalten">Festhalten</button>
+    <button id="btn-sofa" title="Große Schrift für 2,5–3 m Abstand">Sofa</button>
+    <button id="btn-lesen" title="Bedienleiste ausblenden (reiner Lesemodus)">Nur lesen</button>
+    <button id="btn-hoeren" title="Hören lernen: aus → nur Album-Hinweise → live mitlaufend">Hören: Album</button>
+  </div>
+
+
+  <div id="haltehinweis" class="sans"></div>
+
+  <div id="ruhehinweis"><b>Nichts läuft.</b> <span id="ruhetext"></span></div>
+
+  <div id="nurquelle">
+    <div class="qn" id="nqname"></div>
+    <div class="qh" id="nqhinweis"></div>
+    <div class="qf" id="nqformat"></div>
+    <div class="qz" id="nqzeit"></div>
+  </div>
+
+  <article id="karte">
+    <div class="kopf">
+      <div class="cover"><img id="cover" alt=""></div>
+      <div>
+        <h1 id="album"></h1>
+        <div class="kuenstler" id="kuenstler"></div>
+        <div class="mitwirkende" id="mitwirkende"></div>
+        <dl class="meta" id="meta"></dl>
+
+        <div class="laeuft" id="laeuft">
+          <div class="zustand"><span class="ikon" id="zikon">▶</span><span id="ztext">Es läuft</span>
+            <span id="quellname" style="margin-left:.4rem"></span></div>
+          <div class="laufttitel" id="track"></div>
+          <div class="laufinfo" id="trackinfo"></div>
+          <div class="fortschritt" id="fortschritt">
+            <div class="balken" id="balkenrahmen"><i id="balken"></i></div>
+            <span class="uhr" id="uhr"></span>
+          </div>
+
+          <div class="bedienung sans" id="bedienung" hidden>
+            <button class="bknopf" id="b-zurueck" title="Vorheriger Titel" aria-label="Vorheriger Titel">⏮</button>
+            <button class="bknopf gross" id="b-spiel" title="Wiedergabe / Pause" aria-label="Wiedergabe oder Pause">▶</button>
+            <button class="bknopf" id="b-stop" title="Stopp" aria-label="Stopp">■</button>
+            <button class="bknopf" id="b-weiter" title="Nächster Titel" aria-label="Nächster Titel">⏭</button>
+            <span class="btrenner"></span>
+            <span class="blaut" id="blaut">
+              <button class="bknopf" id="b-leiser" title="Leiser" aria-label="Leiser">−</button>
+              <span class="wert" id="b-vwert" title="Lautstärke"></span>
+              <button class="bknopf" id="b-lauter" title="Lauter" aria-label="Lauter">+</button>
+              <button class="bknopf stumm" id="b-stumm" title="Stumm schalten"
+                    aria-label="Stumm schalten">Ton</button>
+            </span>
+            <span class="btrenner"></span>
+            <button class="bknopf herz" id="b-herz" title="Diesen Titel merken"
+                    aria-label="Diesen Titel merken">♥</button>
+            <span class="bmeldung" id="bmeldung"></span>
+          </div>
+        </div>
+
+        <div class="technik" id="technik"></div>
+        <div class="hinweistext" id="bphinweis"></div>
+        <div class="tagwarnung" id="tagwarnung"></div>
+        <div class="schlagworte" id="schlagworte"></div>
+        <details id="ausgabe" hidden>
+          <summary>Ausgabe</summary>
+          <dl class="meta inhalt" id="ausgabemeta"></dl>
+        </details>
+      </div>
+    </div>
+
+    <section id="s-credits" hidden>
+      <h2>Besetzung und Produktion</h2>
+      <div id="credits" class="spalten"></div>
+    </section>
+
+    <section id="s-text" hidden>
+      <h2 id="texth2">Über das Album</h2>
+      <div id="text" class="spalten"></div>
+    </section>
+
+    <section id="s-lyrics" hidden>
+      <h2>Text zu diesem Titel</h2>
+      <div id="lyrics" class="fliess"></div>
+    </section>
+
+    <section id="s-tracks" hidden>
+      <h2>Titel des Albums</h2>
+      <div id="tracks"></div>
+    </section>
+
+    <section id="s-suche" hidden>
+      <h2>In der Bibliothek suchen</h2>
+      <div class="suchzeile">
+        <input id="suchfeld" type="search" autocomplete="off"
+               placeholder="Künstler, Album oder Titel …"
+               aria-label="In der Bibliothek suchen">
+        <span class="suchhinweis" id="suchhinweis"></span>
+      </div>
+      <div id="suchergebnis"></div>
+    </section>
+
+    <section id="s-verlauf" hidden>
+      <h2>Zuletzt gehört</h2>
+      <div id="verlauf"></div>
+    </section>
+
+    <section id="s-merkliste" hidden>
+      <h2>Gemerkte Titel</h2>
+      <div class="favkopf sans">
+        <span class="favzahl" id="favzahl"></span>
+        <a href="/api/favoriten.m3u" download>Als Playlist (M3U) laden</a>
+        <button id="fav-abspielen">In die Warteschlange des Linn</button>
+        <button id="fav-abgleich" title="Mit Navidrome abgleichen – in beide Richtungen, es wird nichts entfernt">Mit Navidrome abgleichen</button>
+      </div>
+      <div id="favliste"></div>
+    </section>
+
+    <section id="s-hoeren" hidden>
+      <h2>Worauf hören</h2>
+      <div class="hlkopf sans">
+        <button id="hl-merken" title="Diese Stelle als Hinweis-Entwurf festhalten">Hinweis hier</button>
+        <span class="bmeldung" id="hl-meldung"></span>
+      </div>
+      <ul class="achten" id="hl-achten"></ul>
+      <div class="ensemble" id="hl-ensemble"></div>
+      <div id="hl-einspielungen" class="sans"></div>
+      <div id="hl-hintergrund"></div>
+      <div class="quelle" id="hl-quelle"></div>
+    </section>
+
+    <section id="s-extern" hidden>
+      <h2>Nachgeschlagen</h2>
+      <div id="extern"></div>
+    </section>
+
+    <div class="fuss">
+      <span><span id="punkt"></span><span id="verbindung">verbinde …</span></span>
+      <span><a href="/dr">DR-Übersicht aller Alben →</a></span>
+      <span id="zuordnung"></span>
+    </div>
+  </article>
+</div>
+
+<script>
+"use strict";
+const $ = s => document.querySelector(s);
+const esc = s => (s??"").toString().replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
+const sichereURL = s => {
+  try { const u = new URL(s, location.href); return ["http:","https:"].includes(u.protocol) ? esc(u.href) : "#"; }
+  catch { return "#"; }
+};
+const zeit = s => { if(s==null) return ""; const m=Math.floor(s/60), r=Math.floor(s%60);
+  return m + ":" + String(r).padStart(2,"0"); };
+
+/* Zustand. `folge` verwirft verspätete Antworten eines früheren Titels:
+   Bei schnellem Überspringen kann eine ältere Antwort nach einer neueren
+   eintreffen und würde sonst die Anzeige zurückwerfen. */
+let letzteFolge = -1, albumSchluessel = null, uhrLauf = null, standRef = null;
+/* Beim ERSTEN Aufruf nicht zum laufenden Titel springen. Sonst öffnet die
+   Seite mitten in der Trackliste und der Album-Kopf mit Cover, Titel und
+   Metadaten ist nicht zu sehen – aufgefallen beim ersten Screenshot.
+   Gescrollt wird erst, wenn sich der Titel während der Sitzung ändert. */
+let erstesZeichnen = true;
+
+function zustandsbild(d){
+  const t = (d.transport||"").toLowerCase();
+  if(!d.laeuft)          return {kl:"stopp", ikon:"■", text:"Gestoppt"};
+  if(t === "paused")     return {kl:"pause", ikon:"❙❙", text:"Pause"};
+  if(t === "buffering")  return {kl:"", ikon:"◌", text:"Puffert"};
+  return {kl:"", ikon:"▶", text:"Es läuft"};
+}
+
+/* Fortschritt lokal weiterzählen. Der Linn meldet nicht jede Sekunde –
+   zwischen den Ereignissen wird interpoliert, statt ihn zu befragen. */
+function uhrStarten(position, dauer, laufend){
+  if(uhrLauf){ clearInterval(uhrLauf); uhrLauf = null; }
+  if(position == null){ $("#uhr").textContent = ""; $("#balken").style.width = "0"; return; }
+  standRef = {pos: position, dauer: dauer, zeit: Date.now()};
+  const zeichnen = () => {
+    let p = standRef.pos;
+    if(laufend) p += (Date.now() - standRef.zeit) / 1000;
+    if(standRef.dauer) p = Math.min(p, standRef.dauer);
+    $("#uhr").textContent = standRef.dauer
+        ? `${zeit(p)} / ${zeit(standRef.dauer)}` : zeit(p);
+    $("#balken").style.width = standRef.dauer
+        ? (100 * p / standRef.dauer).toFixed(2) + "%" : "0";
+  };
+  zeichnen();
+  if(laufend) uhrLauf = setInterval(zeichnen, 1000);
+}
+
+function mpZeilen(paare){
+  return paare.map(([k,v,ex]) =>
+    `<div class="mp"><dt>${esc(k)}</dt><dd>${v}${ex?'<span class="extern">nachgeschlagen</span>':''}</dd></div>`
+  ).join("");
+}
+
+/* Oben steht, was beim Hoeren zaehlt: Jahr, Genre, Label. Die
+   Pressungsangaben (Barcode, Katalognummer, Land, Medium, Copyright)
+   beantworten "welche Ausgabe ist das" und wandern in den
+   Aufklappbereich - das Backend markiert sie mit `ausgabe`. */
+function metaPaare(d){
+  const p = [];
+  // Stammen Jahr und Genre vom Player statt aus der Bibliothek, wird das
+  // ausgewiesen - sonst liest man sie als Bibliotheksangaben, obwohl das
+  // Album dort gar nicht liegt.
+  const vonQuelle = d.kopf_herkunft === "quelle";
+  const woher = vonQuelle ? ((d.quelle||{}).name || "Player") : null;
+  if(d.jahr)  p.push(["Jahr" + (woher ? " (laut " + woher + ")" : ""), esc(d.jahr), false]);
+  if(d.genre) p.push(["Genre" + (woher ? " (laut " + woher + ")" : ""), esc(d.genre), false]);
+  /* Umfang des Albums: Titelzahl und Gesamtspieldauer. Beides steht
+     schon in der Trackliste, aber dort muss man es zusammenzaehlen. */
+  const tr = d.tracks || [];
+  if(tr.length){
+    p.push(["Titel", String(tr.length), false]);
+    const summe = tr.reduce((a, t) => a + (t.dauer_s || 0), 0);
+    if(summe > 0) p.push(["Spieldauer", zeit(summe), false]);
+  }
+  (d.fakten||[]).filter(f => !f.ausgabe)
+    .forEach(f => p.push([esc(f.titel), esc(f.wert), !!f.extern]));
+  return mpZeilen(p);
+}
+
+function ausgabePaare(d){
+  return mpZeilen((d.fakten||[]).filter(f => f.ausgabe)
+    .map(f => [esc(f.titel), esc(f.wert), !!f.extern]));
+}
+
+/* Schlagworte (derzeit nur Stimmung). Sie standen bisher im Abschnitt
+   "Ueber das Album" und liessen dessen Ueberschrift erscheinen, obwohl
+   kein Albumtext vorlag - Fehler B. */
+function schlagwortReihe(d){
+  return (d.schlagworte||[]).map(s =>
+    `<span class="schlagwort"><span class="sw">${esc(s.titel)}</span>${esc(s.wert)}</span>`
+  ).join("");
+}
+
+/* Dirigent, Orchester, Chor - sofern getaggt. Beim Testalbum (Kleiber)
+   sind diese Felder nicht vorhanden; dann bleibt die Zeile leer, statt
+   etwas zu behaupten. */
+function mitwirkendeReihe(d){
+  return (d.mitwirkende||[]).map(m =>
+    `<span style="margin-right:1.1rem"><span class="rolle">${esc(m.rolle)}</span>${esc(m.name)}</span>`
+  ).join("");
+}
+
+/* ---------------------------------------------------------------- 2.1
+   Trackliste. Liegen Werkgruppen vor, erscheint das Werk als
+   Zwischenueberschrift und die Zeile traegt nur noch die
+   Satzbezeichnung. Fehlen sie, bleibt die flache Liste. */
+function tracklisteHtml(inhalt){
+  const tr = inhalt.tracks || [];
+  if(!tr.length) return "";
+  const gemerkt = new Set(inhalt.favoriten || []);
+  const zeile = t =>
+    `<li data-pfad="${esc(t.pfad)}"><span class="nr">${t.nr??""}</span>`+
+    `<span class="name">${esc(t.anzeige || t.titel)}</span>`+
+    `<button class="fav${gemerkt.has(t.pfad)?" an":""}" data-pfad="${esc(t.pfad)}" `+
+    `title="Titel merken" aria-label="Titel merken">♥</button>`+
+    `<span class="trdr">${t.dr!=null?("DR"+Math.round(t.dr)):""}</span>`+
+    `<span class="dauer">${zeit(t.dauer_s)}</span></li>`;
+
+  const w = inhalt.werke;
+  if(w && w.gruppen && w.gruppen.length){
+    return w.gruppen.map(g =>
+      (g.werk ? `<div class="werk">${esc(g.werk)}</div>` : "") +
+      "<ol>" + g.tracks.map(zeile).join("") + "</ol>"
+    ).join("");
+  }
+
+  const discs = [...new Set(tr.map(t => t.disc||1))];
+  let h = "";
+  for(const dn of discs){
+    if(discs.length > 1) h += `<div class="disc">Disc ${dn}</div>`;
+    h += "<ol>" + tr.filter(t => (t.disc||1)===dn).map(zeile).join("") + "</ol>";
+  }
+  return h;
+}
+
+function technikPlaketten(d){
+  const out = [];
+  if(d.qualitaet)
+    out.push(`<span class="plakette pl-neutral">${esc(d.qualitaet)}</span>`);
+
+  const b = d.bitperfekt || {};
+  if(b.stand === "bitperfekt")
+    out.push(`<span class="plakette pl-gut" title="${esc(b.grund)}">✓ ${esc(b.text)}</span>`);
+  else if(b.stand === "abweichend")
+    out.push(`<span class="plakette pl-warn" title="${esc(b.grund)}">⚠ ${esc(b.text)}</span>`);
+  else if(b.text)
+    out.push(`<span class="plakette pl-neutral" title="${esc(b.grund||"")}">${esc(b.text)}</span>`);
+
+  const dr = d.dr;
+  if(dr){
+    const spanne = (dr.min!=null && dr.max!=null && dr.min!==dr.max)
+        ? ` <span style="opacity:.75;font-weight:400;font-size:.8rem">min ${dr.min} · max ${dr.max}</span>` : "";
+    out.push(`<span class="plakette dr-${dr.stufe}" title="Dynamic Range des Albums nach der TT-Methode, über ${dr.tracks} Titel. Peak ${dr.peak_db} dB, RMS ${dr.rms_db} dB.">`+
+             `Album-DR <span class="wert">${dr.dr}</span>${spanne}</span>`);
+    const q = encodeURIComponent(((d.artist||"")+" "+(d.album||"")).trim());
+    out.push(`<a class="herkunft" style="margin-top:0" target="_blank" rel="noopener" `+
+             `href="https://dr.loudness-war.info/album/list?search=${q}">Andere Ausgaben vergleichen →</a>`);
+  }
+  return out.join("");
+}
+
+/* Kürzt an der letzten Wortgrenze vor der Marke – sonst entstehen
+   Bruchstücke wie "differences s". */
+function kuerzenAnWortgrenze(text, max){
+  if(text.length <= max) return text;
+  const teil = text.slice(0, max);
+  const schnitt = Math.max(teil.lastIndexOf(" "), teil.lastIndexOf("\n"),
+                           teil.lastIndexOf("."), teil.lastIndexOf(","));
+  return (schnitt > max * 0.6 ? teil.slice(0, schnitt) : teil).replace(/[\s,;:.–-]+$/, "");
+}
+
+function besetzungListe(liste){
+  return `<div class="bes">` + liste.map(p =>
+    `<div class="p"><span class="pn">${esc(p.name)}</span>`+
+    `<span class="pr">${p.rollen && p.rollen.length ? p.rollen.map(esc).join(" · ") : "—"}</span></div>`
+  ).join("") + `</div>`;
+}
+
+function textBlock(e, ohneTitel){
+  // Besetzung und Produktion als Liste, nicht als Fließtext
+  if(e.liste && e.liste.length){
+    return `<div class="block"><div class="name">${esc(e.titel)}</div>`+
+           besetzungListe(e.liste) + `</div>`;
+  }
+  const lang = e.zeichen > 1100;
+  const kurz = lang ? kuerzenAnWortgrenze(e.text, 1000) : e.text;
+  let h = `<div class="block">`;
+  if(!ohneTitel || e.auszug){
+    h += `<div class="name">${ohneTitel ? "" : esc(e.titel)}`;
+    if(e.auszug) h += `<span class="marke">Auszug</span>`;
+    h += `</div>`;
+  }
+  h += `<div class="fliess" data-voll="${esc(e.text)}">${esc(kurz)}${lang?"…":""}</div>`;
+  if(lang) h += `<button class="mehr">Weiterlesen</button>`;
+  const q = [];
+  if(e.quelle) q.push(e.quelle_url
+      ? `Quelle: <a href="${sichereURL(e.quelle_url)}" target="_blank" rel="noopener">${esc(e.quelle)}</a>`
+      : `Quelle: ${esc(e.quelle)}`);
+  if(e.auszug && !e.quelle) q.push("gekürzter Auszug");
+  if(q.length) h += `<div class="herkunft">${q.join(" · ")}</div>`;
+  return h + `</div>`;
+}
+
+/* ---------------------------------------------------------------- 2.4
+   Ansicht festhalten. Die Anzeige bleibt beim gewaehlten Album stehen,
+   waehrend die Wiedergabe weiterlaeuft. Der letzte echte Stand wird
+   weiter mitgefuehrt (nur nicht gezeichnet), damit der Hinweis sagen
+   kann, was tatsaechlich spielt - und damit "zurueck zur Wiedergabe"
+   sofort das Richtige zeigt. */
+let halten = false, laufendLetzter = null;
+
+function haltehinweisZeichnen(){
+  const k = $("#haltehinweis");
+  if(!halten){ k.classList.remove("an"); k.innerHTML = ""; return; }
+  const d = laufendLetzter;
+  let was = "Wiedergabe unbekannt.";
+  if(d){
+    const i = (!d.laeuft ? (d.zuletzt || {}) : d);
+    const t = i.titel || "", a = i.album || "";
+    if(!d.laeuft)   was = "Die Wiedergabe ist gestoppt.";
+    else if(t && a) was = `Es läuft: <b>${esc(t)}</b> · ${esc(a)}`;
+    else if(t)      was = `Es läuft: <b>${esc(t)}</b>`;
+    else            was = "Es läuft etwas anderes.";
+  }
+  k.innerHTML = `<b>Ansicht festgehalten.</b> ${was}` +
+    `<button id="btn-zurueck">Zurück zur Wiedergabe</button>`;
+  k.classList.add("an");
+  $("#btn-zurueck").onclick = () => haltenSetzen(false);
+}
+
+function haltenSetzen(an){
+  halten = an;
+  $("#btn-halten").classList.toggle("an", an);
+  $("#btn-halten").textContent = an ? "Festgehalten" : "Festhalten";
+  haltehinweisZeichnen();
+  if(!an && laufendLetzter) zeichneJetzt(laufendLetzter);
+}
+
+function zeichne(d){
+  laufendLetzter = d;
+  brennschutzTakt(d);
+  if(halten){ haltehinweisZeichnen(); return; }
+  zeichneJetzt(d);
+}
+
+let startId = null;
+
+function zeichneJetzt(d){
+  /* Hat der Dienst neu gestartet, beginnen die Folge-Nummern wieder bei 1.
+     Ohne diese Prüfung verwirft der Browser jedes Update als "veraltet"
+     und die Anzeige friert ein, bis man neu lädt - genau so beobachtet
+     nach mehreren Neustarts während der Entwicklung. */
+  if(d.start_id && startId && d.start_id !== startId){
+    letzteFolge = -1;
+    console.info("Dienst neu gestartet – Folgezähler zurückgesetzt");
+  }
+  if(d.start_id) startId = d.start_id;
+
+  if(d.folge != null && d.folge < letzteFolge) return;   // veraltete Antwort
+  if(d.folge != null) letzteFolge = d.folge;
+
+  // Quelle ohne Titelinfos: eigener, ruhiger Zustand
+  const nq = d.laeuft ? d.nur_quelle : null;
+  $("#nurquelle").classList.toggle("an", !!nq);
+  $("#karte").style.display = nq ? "none" : "";
+  if(nq){
+    $("#ruhehinweis").classList.remove("an");
+    $("#nqname").textContent = nq.name;
+    $("#nqhinweis").textContent =
+      (d.bitperfekt && d.bitperfekt.grund) ? d.bitperfekt.grund
+      : "Der Player liefert für diese Quelle keine Titelangaben.";
+    $("#nqformat").innerHTML = nq.format
+      ? `<span class="plakette pl-neutral">${esc(nq.format)}</span>` : "";
+    document.title = nq.name + " – Liner Notes";
+    // Laufende Zeit ohne Gesamtdauer: lokal weiterzählen
+    const z = d.zeit || {};
+    if(uhrLauf){ clearInterval(uhrLauf); uhrLauf = null; }
+    if(z.position_s != null){
+      const ref = {pos: z.position_s, zeit: Date.now()};
+      const zeigen = () => {
+        const p = ref.pos + (Date.now() - ref.zeit) / 1000;
+        $("#nqzeit").textContent = "läuft seit " + zeit(p);
+      };
+      zeigen();
+      uhrLauf = setInterval(zeigen, 1000);
+    } else $("#nqzeit").textContent = "";
+    return;
+  }
+
+  const ruht = !d.laeuft;
+  const inhalt = ruht ? (d.zuletzt || null) : d;
+  $("#ruhehinweis").classList.toggle("an", ruht);
+  $("#karte").classList.toggle("ruht", ruht);
+  if(ruht){
+    $("#ruhetext").textContent = d.grund === "linn-nicht-erreichbar"
+      ? "Der Linn antwortet nicht."
+      : (inhalt ? "Zuletzt gespielt:" : "");
+    if(uhrLauf){ clearInterval(uhrLauf); uhrLauf = null; }
+  }
+  if(!inhalt){
+    $("#album").textContent = "—"; $("#kuenstler").textContent = "";
+    $("#meta").innerHTML = ""; $("#technik").innerHTML = "";
+    $("#track").textContent = ""; $("#trackinfo").textContent = "";
+    $("#uhr").textContent = ""; $("#balken").style.width = "0";
+    ["#s-credits","#s-text","#s-lyrics","#s-tracks","#s-extern","#s-hoeren"]
+      .forEach(s => $(s).hidden = true);
+    hlDaten = null; hlSchluessel = ""; hlLeisteZeichnen();
+    fussleisteZeichnen(d);
+    document.title = "Liner Notes"; return;
+  }
+
+  /* Albumteile nur neu zeichnen, wenn sich das Album wirklich ändert.
+     Bei einem Titelwechsel innerhalb desselben Albums bleiben Cover, Texte
+     und Trackliste unangetastet – das verhindert Flackern und Sprünge. */
+  const schluessel = (inhalt.album_id ?? "") + "|" + (inhalt.album ?? "") + "|" + (inhalt.artist ?? "");
+  const albumNeu = schluessel !== albumSchluessel;
+  // Hörhinweise zum Album holen. Der Server schickt im Zustand nur die
+  // Kurzfassung mit; Hinweise und Hintergrund holt die Oberfläche
+  // getrennt, damit der SSE-Strom schlank bleibt.
+  if(d.hoerenlernen && d.hoerenlernen.modus) hlModus = d.hoerenlernen.modus;
+  hlKnopfZeichnen();
+  hlLaden(inhalt);
+  if(albumNeu){
+    albumSchluessel = schluessel;
+    $("#album").textContent = inhalt.album || "—";
+    $("#kuenstler").textContent = inhalt.artist || "";
+    const bild = $("#cover");
+    const neueQuelle = inhalt.album_id ? "/api/cover/" + inhalt.album_id
+        : (inhalt.cover_extern ? "/api/cover-extern?url=" + encodeURIComponent(inhalt.cover_extern) : "");
+    if(bild.dataset.q !== neueQuelle){
+      bild.dataset.q = neueQuelle; bild.classList.remove("da");
+      if(neueQuelle){ bild.onload = () => bild.classList.add("da"); bild.src = neueQuelle; }
+      else { bild.removeAttribute("src"); }
+    }
+    bild.alt = (inhalt.album||"") + " – Cover";
+    $("#meta").innerHTML = metaPaare(inhalt);
+    const aus = ausgabePaare(inhalt);
+    $("#ausgabemeta").innerHTML = aus;
+    $("#ausgabe").hidden = !aus;
+    $("#schlagworte").innerHTML = schlagwortReihe(inhalt);
+    $("#mitwirkende").innerHTML = mitwirkendeReihe(inhalt);
+
+    // Besetzung und Produktion zuerst – sie füllen den Platz neben dem Cover
+    const alle = inhalt.eigene || [];
+    const credits = alle.filter(e => ["personnel","producer"].includes(e.feld));
+    const texte   = alle.filter(e => !["personnel","producer"].includes(e.feld));
+    $("#credits").innerHTML = credits.map(textBlock).join("");
+    $("#s-credits").hidden = credits.length === 0;
+    /* Gibt es nur EINEN Textblock, traegt der Abschnitt bereits dessen
+       Titel - dann steht „Ueber das Album" sonst zweimal untereinander,
+       einmal als Abschnitts-, einmal als Spaltenueberschrift. */
+    $("#texth2").textContent = texte.length === 1 && texte[0].titel
+        ? texte[0].titel : "Über das Album";
+    $("#text").innerHTML = texte
+        .map(e => textBlock(e, texte.length === 1)).join("");
+    $("#s-text").hidden = texte.length === 0;
+
+    // Trackliste (mit Werkgruppen, wenn vorhanden)
+    $("#tracks").innerHTML = tracklisteHtml(inhalt);
+    $("#s-tracks").hidden = !(inhalt.tracks||[]).length;
+    hlMarkenSetzen();
+
+    // Nachgeschlagenes
+    const x = inhalt.extern || {}; let ex = "";
+    if(x.wikipedia && x.wikipedia.text){
+      ex += `<div class="block"><div class="fliess">${esc(x.wikipedia.text)}</div>`+
+            `<div class="herkunft">Quelle: <a href="${sichereURL(x.wikipedia.url||"#")}" target="_blank" rel="noopener">`+
+            `Wikipedia (${esc(x.wikipedia.sprache)})</a></div></div>`;
+    }
+    if(x.lastfm && x.lastfm.wiki){
+      const s = x.lastfm.wiki.replace(/<[^>]*>/g,"").trim();
+      if(s) ex += `<div class="block"><div class="fliess">${esc(s.slice(0,1400))}</div>`+
+                  `<div class="herkunft">Quelle: <a href="${sichereURL(x.lastfm.url||"#")}" target="_blank" rel="noopener">Last.fm</a></div></div>`;
+    }
+    if(x.lastfm && (x.lastfm.tags||[]).length)
+      ex += `<div class="herkunft">Schlagworte bei Last.fm: ${x.lastfm.tags.map(esc).join(" · ")}</div>`;
+    if(x.discogs && (x.discogs.credits||[]).length)
+      ex += `<div class="block"><div class="name">Besetzung laut Discogs</div>`+
+            `<div class="fliess">${x.discogs.credits.map(esc).join("\n")}</div>`+
+            `<div class="herkunft">Quelle: <a href="${sichereURL(x.discogs.url||"#")}" target="_blank" rel="noopener">Discogs</a></div></div>`;
+    $("#extern").innerHTML = ex;
+    $("#s-extern").hidden = ex.length === 0;
+  }
+
+  fussleisteZeichnen(d);
+
+  // --- titelbezogene Teile: bei jedem Wechsel ---
+  const zb = zustandsbild(d);
+  $("#laeuft").className = "laeuft " + zb.kl;
+  $("#zikon").textContent = zb.ikon;
+  $("#ztext").textContent = zb.text;
+  const qn = (d.quelle||{}).name;
+  $("#quellname").innerHTML = qn ? `<span class="marke">Quelle: ${esc(qn)}</span>` : "";
+
+  $("#track").textContent = inhalt.titel || "";
+  const info = [];
+  if(inhalt.tracknummer) info.push("Titel " + esc(inhalt.tracknummer));
+  // Interpret nur, wenn er vom Album-Künstler abweicht
+  if(inhalt.interpret && inhalt.interpret !== inhalt.artist) info.push(esc(inhalt.interpret));
+  if(inhalt.komponist) info.push("Komposition: " + esc(inhalt.komponist));
+  $("#trackinfo").innerHTML = info.join(" &nbsp;·&nbsp; ");
+  document.title = (inhalt.titel ? inhalt.titel + " – " : "") + (inhalt.album || "Liner Notes");
+
+  const z = d.zeit || {};
+  uhrStarten(z.position_s, z.dauer_s || inhalt.dauer_s, !!d.laeuft && zb.kl === "");
+
+  $("#technik").innerHTML = technikPlaketten(inhalt);
+  const b = inhalt.bitperfekt || {};
+  $("#bphinweis").className = "hinweistext" + (b.stand === "abweichend" ? " warn" : "");
+  $("#bphinweis").textContent = (b.stand === "abweichend" || b.stand === "unbekannt")
+      ? (b.grund || "") : "";
+
+  // Verdachtshinweis
+  const tv = inhalt.tagverdacht;
+  $("#tagwarnung").classList.toggle("an", !!tv);
+  if(tv){
+    const erster = (tv.gruende && tv.gruende[0]) ? tv.gruende[0] : "";
+    $("#tagwarnung").innerHTML =
+      `Tags möglicherweise fehlerhaft · <a href="/pruefen">prüfen →</a>` +
+      (erster ? `<span class="det">${esc(erster)}</span>` : "");
+  }
+
+  $("#s-lyrics").hidden = !inhalt.lyrics;
+  if(inhalt.lyrics) $("#lyrics").textContent = inhalt.lyrics;
+
+  // laufenden Titel markieren und in den Blick holen
+  document.querySelectorAll("#tracks li").forEach(li => {
+    const an = inhalt.aktueller_pfad && li.dataset.pfad === inhalt.aktueller_pfad;
+    li.classList.toggle("jetzt", !!an);
+    if(an && !ruht && li.dataset.gezeigt !== inhalt.aktueller_pfad){
+      li.dataset.gezeigt = inhalt.aktueller_pfad;
+      if(!erstesZeichnen){
+        const kasten = li.getBoundingClientRect();
+        if(kasten.top < 0 || kasten.bottom > innerHeight)
+          li.scrollIntoView({behavior:"smooth", block:"center"});
+      }
+    }
+  });
+
+  if(steuerungAn && !lesemodus) bedienbarkeit(d);
+  herzZeichnen(inhalt);
+
+  /* Album- und Titeltreffer sind zwei verschiedene Dinge. Ein Album kann
+     bekannt sein, während dieser eine Titel nicht als Datei auffindbar ist
+     (anderer Schnitt, anderer Titelname, Bonustrack). Vorher hieß beides
+     "Quelle ohne Bibliotheksdatei" - das verschweigt, was bekannt ist. */
+  const tf = inhalt.treffer || {};
+  $("#zuordnung").textContent =
+      tf.zuordnung === "fallback" ? "Album über Namensabgleich zugeordnet"
+    : (tf.album && !tf.titel) ? "Titel in der Bibliothek nicht gefunden"
+    : (!tf.album && inhalt.album) ? "Album nicht in der Bibliothek"
+    : inhalt.ohne_datei ? "Quelle ohne Bibliotheksdatei" : "";
+
+  erstesZeichnen = false;
+}
+
+// Weiterlesen
+document.addEventListener("click", e => {
+  if(!e.target.classList.contains("mehr")) return;
+  const blatt = e.target.previousElementSibling;
+  blatt.textContent = blatt.dataset.voll;
+  e.target.remove();
+});
+
+// --- SSE mit Backoff und Neuladen nach Wiederverbindung ---
+let es = null, warte = 1000;
+
+/* ------------------------------------------------------------------ Hören lernen
+   Die Zeitsteuerung läuft im Browser, nicht auf dem Server: Der Zustand
+   kommt nur bei Ereignissen und im 30-Sekunden-Rückfall: viel zu grob für
+   einen Hinweis, der auf die Sekunde sitzen soll. Der Browser hat mit
+   standRef schon eine interpolierte Position - die genügt.
+
+   Quelle und Lizenz stehen an jeder Anzeige. Das Repo verlangt
+   Namensnennung (CC BY-NC-SA 4.0), und die gehört sichtbar dorthin, wo
+   der Text erscheint. */
+let hlDaten = null;         // Antwort von /api/hoerenlernen/album
+let hlSchluessel = "";      // zu welchem Album hlDaten gehört
+let hlModus = "album";
+let hlTakt = null;
+let hlZu = "";              // Titel, für den der Nutzer die Leiste schloss
+let hlGezeigt = null;       // id des gerade sichtbaren Hinweises
+let hlTracks = new Set();   // Tracknummern mit Hinweisen (für die Liste)
+
+function hlPosition(){
+  if(!standRef || standRef.pos == null) return null;
+  let p = standRef.pos;
+  if(laufendLetzter && laufendLetzter.laeuft)
+    p += (Date.now() - standRef.zeit) / 1000;
+  if(standRef.dauer) p = Math.min(p, standRef.dauer);
+  return p;
+}
+
+function hlTracknummer(){
+  const d = laufendLetzter || {};
+  const n = parseInt(String(d.tracknummer || "0").replace(/^0+/, ""), 10);
+  return isNaN(n) ? 0 : n;
+}
+
+function hlHinweisJetzt(){
+  if(hlModus !== "live" || !hlDaten || !hlDaten.gefunden) return null;
+  const pos = hlPosition();
+  if(pos == null) return null;
+  const nr = hlTracknummer();
+  const vorlauf = 2;      // kurz VOR der Stelle einblenden
+  let treffer = null;
+  for(const h of hlDaten.hinweise || []){
+    if(h.nr !== nr || h.zeit_s == null) continue;
+    const beginn = h.zeit_s - vorlauf, ende = h.zeit_s + (h.dauer || 12);
+    if(pos >= beginn && pos < ende){
+      treffer = h;
+      treffer._rest = Math.max(0, ende - pos);
+      treffer._anteil = Math.max(0, Math.min(1, treffer._rest / (h.dauer || 12)));
+    }
+  }
+  return treffer;
+}
+
+function hlLeisteZeichnen(){
+  const leiste = $("#hoerleiste");
+  const d = laufendLetzter || {};
+  const h = (hlZu && hlZu === (d.titel||"")) ? null : hlHinweisJetzt();
+
+  if(!h){
+    if(hlGezeigt !== null){
+      leiste.classList.remove("an");
+      document.body.classList.remove("hoerleiste-an");
+      hlGezeigt = null;
+    }
+    hlEnsembleHervorheben([]);
+    return;
+  }
+  if(h.id !== hlGezeigt){
+    $("#hl-satz").textContent = h.text || "";
+    $("#hl-instr").textContent = (h.instrumente || []).join(" · ");
+    leiste.classList.add("an");
+    document.body.classList.add("hoerleiste-an");
+    hlGezeigt = h.id;
+    hlEnsembleHervorheben(h.instrumente || []);
+  }
+  $("#hl-ring").style.setProperty("--anteil", (h._anteil * 100).toFixed(0) + "%");
+}
+
+function hlEnsembleHervorheben(instrumente){
+  const menge = new Set((instrumente || []).map(s => s.toLowerCase()));
+  document.querySelectorAll("#hl-ensemble .pult").forEach(el => {
+    el.classList.toggle("aktiv", menge.has((el.dataset.name||"").toLowerCase()));
+  });
+}
+
+function hlEnsembleHtml(bes){
+  const gruppen = (bes && bes.gruppen) || [];
+  if(!gruppen.length) return "";        // keine Daten -> keine leere Bühne
+  const pult = n => `<span class="pult" data-name="${esc(n)}">${esc(n)}</span>`;
+  if((bes.art || "") === "orchester"){
+    /* Schematische Aufstellung wie im Vorbild: hinten Schlagwerk und
+       Blech, davor das Holz, vorn die Streicher. Reihenfolge der Gruppen
+       aus der Datei wird dafür nach Namen sortiert - wer eigene Gruppen
+       benutzt, landet unten. */
+    const ordnung = ["schlagwerk","blech","holz","streicher"];
+    const rang = g => {
+      const n = (g.name||"").toLowerCase();
+      const i = ordnung.findIndex(o => n.includes(o));
+      return i < 0 ? 99 : i;
+    };
+    return `<div class="buehne">` + [...gruppen].sort((a,b)=>rang(a)-rang(b))
+      .map(g => `<div class="reihe ${esc((g.name||"").toLowerCase())}">`+
+                (g.instrumente||[]).map(pult).join("")+`</div>`).join("") +
+      `</div>`;
+  }
+  return gruppen.map(g =>
+    `<div class="gruppe"><div class="gname">${esc(g.name||"")}</div>`+
+    (g.instrumente||[]).map(pult).join("")+`</div>`).join("");
+}
+
+function hlAbschnittZeichnen(){
+  const s = $("#s-hoeren");
+  const hl = (laufendLetzter||{}).hoerenlernen;
+  if(!hlDaten || !hlDaten.gefunden){
+    s.hidden = true;
+    hlKnopfZeichnen();
+    return;
+  }
+  s.hidden = false;
+
+  hlKnopfZeichnen();
+  $("#hl-achten").innerHTML = (hlDaten.worauf_achten || [])
+    .map(t => `<li>${esc(t)}</li>`).join("");
+
+  $("#hl-ensemble").innerHTML = hlEnsembleHtml(hlDaten.besetzung);
+
+  const sp = hlDaten.einspielungen || [];
+  $("#hl-einspielungen").innerHTML = sp.length > 1
+    ? `<div class="gname">Andere Einspielung</div>` + sp.map(e =>
+        `<button class="hl-einspielung" data-artist="${esc(e.artist)}" `+
+        `data-album="${esc(e.album)}">${esc(e.kennung||e.album)}`+
+        `${e.jahr?` <span style="opacity:.6">${esc(String(e.jahr).slice(0,4))}</span>`:""}`+
+        `</button>`).join(" ")
+    : "";
+
+  $("#hl-hintergrund").innerHTML = (hlDaten.abschnitte || [])
+    .map(a => `<details class="hg"><summary>${esc(a.titel)}</summary>`+
+              `<div class="fliess">${a.html}</div></details>`).join("");
+
+  const wie = hlDaten.zugeordnet_ueber || (hl && hl.zugeordnet_ueber) || "";
+  $("#hl-quelle").innerHTML =
+    `Hören lernen (${esc(hlDaten.lizenz||"CC BY-NC-SA 4.0")}) · `+
+    `<a href="${sichereURL(hlDaten.repo||"#")}" target="_blank" rel="noopener">Repo</a>`+
+    (hlDaten.quelle ? ` · ${esc(hlDaten.quelle)}` : "") +
+    (wie ? ` · zugeordnet über ${esc(wie)}` : "");
+}
+
+async function hlLaden(inhalt){
+  const schluessel = (inhalt.artist||"") + "|" + (inhalt.album||"");
+  if(schluessel === hlSchluessel) return;
+  hlSchluessel = schluessel;
+  hlDaten = null; hlTracks = new Set(); hlGezeigt = null; hlZu = "";
+  if(!inhalt.album){ hlAbschnittZeichnen(); return; }
+  try{
+    const r = await fetch("/api/hoerenlernen/album?artist="+
+      encodeURIComponent(inhalt.artist||"")+"&album="+encodeURIComponent(inhalt.album||""));
+    const d = await r.json();
+    hlDaten = d && d.gefunden ? d : null;
+    if(hlDaten) hlTracks = new Set((hlDaten.hinweise||[]).map(h => h.nr).filter(Boolean));
+  }catch(e){ hlDaten = null; }
+  hlAbschnittZeichnen();
+  hlMarkenSetzen();
+}
+
+function hlMarkenSetzen(){
+  /* Kleines Zeichen bei Titeln, für die Hinweise existieren. Wird nach
+     dem Zeichnen der Trackliste nachgetragen, damit tracklisteHtml
+     unberührt bleibt. */
+  document.querySelectorAll("#tracks li").forEach(li => {
+    const alt = li.querySelector(".hlmarke");
+    if(alt) alt.remove();
+    const nr = parseInt((li.querySelector(".nr")||{}).textContent || "0", 10);
+    if(!hlTracks.has(nr)) return;
+    const anzahl = (hlDaten && hlDaten.hinweise || []).filter(h => h.nr === nr).length;
+    const s = document.createElement("span");
+    s.className = "hlmarke" + (anzahl >= 4 ? " viele" : "");
+    s.textContent = "◉";
+    s.title = anzahl + (anzahl === 1 ? " Hörhinweis" : " Hörhinweise");
+    const dauer = li.querySelector(".dauer");
+    li.insertBefore(s, dauer || null);
+  });
+}
+
+/* Ein Knopf, drei Zustaende. Der aktuelle steht drauf - so braucht es
+   keine drei Schaltflaechen in einer Leiste, in der schon drei andere
+   sitzen. Reihenfolge wie die Nutzung: erst gar nichts, dann die
+   Album-Hinweise zum Lesen, dann der Laufkommentar. */
+const HL_ZUSTAENDE = ["aus", "album", "live"];
+const HL_TEXTE = {aus: "Hören: aus", album: "Hören: Album", live: "Hören: live"};
+
+function hlKnopfZeichnen(){
+  const k = $("#btn-hoeren");
+  if(!k) return;
+  k.textContent = HL_TEXTE[hlModus] || HL_TEXTE.album;
+  k.classList.toggle("an", hlModus !== "aus");
+  const hat = !!(hlDaten && hlDaten.gefunden);
+  k.disabled = false;
+  k.title = hat
+    ? "Hören lernen: aus → nur Album-Hinweise → live mitlaufend"
+    : "Für dieses Album liegen keine Hörhinweise vor";
+  k.style.opacity = hat ? "" : ".5";
+}
+
+async function hlModusSetzen(m){
+  hlModus = m;
+  hlKnopfZeichnen();
+  if(m !== "live") hlLeisteZeichnen();
+  hlAbschnittZeichnen();
+  try{ await fetch("/api/hoerenlernen/modus/"+encodeURIComponent(m), {method:"POST"}); }
+  catch(e){}
+}
+
+function hlWeiterschalten(){
+  const i = HL_ZUSTAENDE.indexOf(hlModus);
+  hlModusSetzen(HL_ZUSTAENDE[(i + 1) % HL_ZUSTAENDE.length]);
+}
+
+async function hlMerken(){
+  const m = $("#hl-meldung");
+  try{
+    const r = await fetch("/api/hoerenlernen/merken", {method:"POST"});
+    const d = await r.json();
+    if(d.fehler){ m.textContent = d.fehler; return; }
+    m.textContent = `gemerkt: ${d.track||""} bei ${d.zeit} → ${d.datei}`;
+  }catch(e){ m.textContent = "nicht gespeichert"; }
+  setTimeout(() => { m.textContent = ""; }, 6000);
+}
+
+document.addEventListener("click", ev => {
+  if(ev.target.closest("#btn-hoeren")){ hlWeiterschalten(); return; }
+  if(ev.target.closest("#hl-merken")){ hlMerken(); return; }
+  if(ev.target.closest("#hl-zu")){
+    hlZu = (laufendLetzter||{}).titel || "";
+    hlLeisteZeichnen();
+    return;
+  }
+  const e = ev.target.closest(".hl-einspielung");
+  if(e){
+    befehl("/api/bibliothek/abspielen",
+           {artist: e.dataset.artist, album: e.dataset.album}, e);
+  }
+});
+
+hlTakt = setInterval(hlLeisteZeichnen, 500);
+
+
+/* ------------------------------------------------------------- Fussleiste
+   Die Bedienknoepfe und der Fortschritt werden NICHT nachgebaut, sondern
+   die vorhandenen Knoten umgehaengt. Damit bleiben alle IDs, alle
+   Ereignisbehandlungen und die gesamte Logik (Lautstaerke, Sperren,
+   Lesemodus) unveraendert gueltig - ein zweiter Satz Knoepfe waere eine
+   zweite Fehlerquelle. */
+let fussBereit = false;
+
+function fussleisteEinrichten(){
+  if(fussBereit) return;
+  const mitte = $("#fmitte");
+  const leiste = $("#spielleiste");
+  const fort = $("#fortschritt");
+  const bed  = $("#bedienung");
+  if(!mitte || !leiste || !fort || !bed) return;
+  mitte.appendChild(fort);
+  leiste.insertBefore(bed, $("#fplaketten"));
+  document.body.classList.add("hat-fussleiste");
+  fussBereit = true;
+}
+
+function fussleisteZeichnen(d){
+  fussleisteEinrichten();
+  const leiste = $("#fussleiste");
+  if(!leiste) return;
+  const inhalt = d.laeuft ? d : (d.zuletzt || null);
+  // Ohne irgendetwas Laufendes oder Gehoertes bleibt die Leiste weg -
+  // eine leere Leiste am Bildschirmrand ist nur im Weg.
+  if(!inhalt || !(inhalt.album || inhalt.titel)){
+    leiste.hidden = true;
+    document.body.classList.remove("hat-fussleiste");
+    return;
+  }
+  leiste.hidden = false;
+  document.body.classList.add("hat-fussleiste");
+
+  const bild = $("#fcover");
+  const quelle = inhalt.album_id ? ("/api/cover/" + inhalt.album_id + "?groesse=200") : "";
+  if(quelle && bild.dataset.quelle !== quelle){
+    bild.dataset.quelle = quelle;
+    bild.src = quelle;
+  }
+  bild.style.visibility = quelle ? "" : "hidden";
+
+  $("#ftitel").textContent = inhalt.titel || inhalt.album || "";
+  $("#fkuenstler").textContent =
+    [inhalt.artist, inhalt.album].filter(Boolean).join(" · ");
+
+  // Qualitaets-Plakette: dieselbe Information wie oben, nur knapp.
+  const pl = [];
+  if(inhalt.qualitaet)
+    pl.push(`<span class="plakette pl-neutral">${esc(inhalt.qualitaet)}</span>`);
+  const b = inhalt.bitperfekt || {};
+  if(b.stand === "bitperfekt")
+    pl.push(`<span class="plakette pl-gut" title="${esc(b.grund||"")}">✓</span>`);
+  else if(b.stand === "abweichend")
+    pl.push(`<span class="plakette pl-warn" title="${esc(b.grund||"")}">⚠</span>`);
+  $("#fplaketten").innerHTML = pl.join("");
+}
+
+function verbinde(){
+  es = new EventSource("/api/stream");
+  es.addEventListener("update", e => {
+    warte = 1000;
+    $("#punkt").classList.add("live");
+    $("#verbindung").textContent = "live";
+    try { zeichne(JSON.parse(e.data)); } catch(err){ console.error(err); }
+  });
+  es.onopen = () => { fetch("/api/now").then(r=>r.json()).then(zeichne).catch(()=>{}); };
+  es.onerror = () => {
+    $("#punkt").classList.remove("live");
+    $("#verbindung").textContent = "Verbindung unterbrochen – neuer Versuch …";
+    es.close();
+    setTimeout(verbinde, warte);
+    warte = Math.min(warte * 2, 30000);
+  };
+}
+/* ---------------------------------------------------------------- 2.5
+   Sofa-Ansicht. Eigener Modus ueber Schalter oder ?sofa - grosse
+   Schrift, weniger Beiwerk, gedacht fuer 2,5-3 m Abstand. Die Wahl
+   bleibt lokal gespeichert, damit ein Display sie nach dem Neustart
+   behaelt. Dient als Vorlage fuer die spaetere tvOS-App. */
+function sofaSetzen(an, merken){
+  document.body.classList.toggle("sofa", an);
+  $("#btn-sofa").classList.toggle("an", an);
+  if(merken){ try { localStorage.setItem("liner-sofa", an ? "1" : "0"); } catch(e){} }
+}
+$("#btn-sofa").onclick = () => sofaSetzen(!document.body.classList.contains("sofa"), true);
+$("#btn-halten").onclick = () => haltenSetzen(!halten);
+
+(function(){
+  const u = new URLSearchParams(location.search);
+  let an = false;
+  if(u.has("sofa")) an = u.get("sofa") !== "0";
+  else { try { an = localStorage.getItem("liner-sofa") === "1"; } catch(e){} }
+  sofaSetzen(an, false);
+  if(u.has("halten") && u.get("halten") !== "0") haltenSetzen(true);
+})();
+
+/* ---------------------------------------------------------------- 2.6
+   Schutz vor Einbrennen. Drei Stufen:
+
+   a) Im Betrieb wandert das Layout alle zwei Minuten um wenige Pixel.
+      Das ist im Sitzen nicht zu sehen, verschiebt aber die Grenzen
+      heller und dunkler Flaechen - genau darauf kommt es an.
+   b) Nach fuenf Minuten Pause wird deutlich abgedunkelt.
+   c) Bei Stopp eine Ruheansicht ohne helle Flaechen.
+
+   Der Versatz nutzt transform, nicht margin: so laeuft er auf der
+   Grafikkarte und loest kein Neuberechnen des Layouts aus. */
+let versatzZaehler = 0;
+setInterval(() => {
+  if(document.body.classList.contains("ruhebild")) return;
+  versatzZaehler++;
+  const x = [0, 3, 6, 3, 0, -3, -6, -3][versatzZaehler % 8];
+  const y = [0, 2, 0, -2, -4, -2, 0, 2][versatzZaehler % 8];
+  const h = document.querySelector(".huelle");
+  if(h) h.style.transform = `translate(${x}px, ${y}px)`;
+}, 120000);
+
+let pausiertSeit = null;
+function brennschutzTakt(d){
+  const t = ((d && d.transport) || "").toLowerCase();
+  const gestoppt = !d || !d.laeuft;
+  const pausiert = !gestoppt && t === "paused";
+
+  document.body.classList.toggle("ruhebild", gestoppt);
+  if(gestoppt){
+    pausiertSeit = null;
+    document.body.classList.remove("pausiert-lang");
+    return;
+  }
+  if(pausiert){
+    if(pausiertSeit == null) pausiertSeit = Date.now();
+  } else {
+    pausiertSeit = null;
+    document.body.classList.remove("pausiert-lang");
+  }
+}
+// Die Pausendauer laeuft ohne neue Ereignisse weiter - der Linn meldet
+// waehrend einer Pause nichts mehr. Darum eigener Takt.
+setInterval(() => {
+  const lang = pausiertSeit != null && (Date.now() - pausiertSeit) > 300000;
+  document.body.classList.toggle("pausiert-lang", lang);
+}, 15000);
+
+/* ================================================================ 2b
+   Bedienung.
+
+   Grundsatz (Punkt 4): Der angezeigte Zustand kommt IMMER vom Gerät, nie
+   aus einer eigenen Annahme. Es gibt hier absichtlich keine optimistische
+   Anzeige - wer in Kazoo drückt, sieht dasselbe Bild wie wer hier drückt.
+
+   Die "kurze Sperre" ist darum keine Zustandssperre, sondern eine
+   Klicksperre: sie verhindert, dass zwei schnelle Klicks zwei Befehle
+   absetzen und der Player zwischen den Zuständen springt. */
+let steuerungAn = false, lesemodus = false, volStand = null;
+let bedienSperreBis = 0, meldungTimer = null;
+
+function meldung(text, dauer){
+  const k = $("#bmeldung");
+  k.textContent = text || "";
+  if(meldungTimer){ clearTimeout(meldungTimer); meldungTimer = null; }
+  if(text) meldungTimer = setTimeout(() => { $("#bmeldung").textContent = ""; },
+                                     dauer || 4000);
+}
+
+/* Ein Befehl. Blockiert die Seite nie: eigener Abbruch nach 6 s, und
+   jeder Fehler endet in einer kurzen Meldung statt in einer Warteschleife. */
+async function befehl(pfad, koerper, knopf){
+  if(!steuerungAn) return;
+  if(Date.now() < bedienSperreBis) return;
+  bedienSperreBis = Date.now() + 450;
+  if(knopf){ knopf.classList.add("arbeitet"); knopf.disabled = true; }
+  const abbruch = new AbortController();
+  const wecker = setTimeout(() => abbruch.abort(), 6000);
+  try{
+    const r = await fetch(pfad, {method:"POST", signal: abbruch.signal,
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify(koerper || {})});
+    const d = await r.json().catch(() => ({}));
+    if(!r.ok || d.ok === false){
+      meldung(d.grund ? ("Nicht ausgeführt: " + d.grund) : "Befehl nicht angekommen.");
+    } else if(d.hinweis){
+      meldung(d.hinweis, 2500);
+    }
+    if(d.stand) volZeichnen(d.stand);
+  }catch(e){
+    meldung(e.name === "AbortError" ? "Der Player antwortet nicht."
+                                    : "Befehl nicht angekommen.");
+  }finally{
+    clearTimeout(wecker);
+    if(knopf){ knopf.classList.remove("arbeitet"); knopf.disabled = false; }
+  }
+}
+
+function volZeichnen(stand){
+  if(!stand) return;
+  volStand = stand;
+  const w = $("#b-vwert");
+  if(w) w.innerHTML = stand.stumm ? "<b>stumm</b>"
+                                  : `<b>${stand.wert}</b>`;
+  $("#blaut").classList.toggle("stumm", !!stand.stumm);
+  // Der Knopf zeigt den ZUSTAND, nicht die Aktion: neutral \"Ton\", wenn
+  // Ton an ist, deutlich markiert \"Stumm\", wenn stumm geschaltet ist.
+  // Ein rot durchgestrichenes Zeichen im Normalfall las sich wie ein Fehler.
+  const sk = $("#b-stumm");
+  if(sk){
+    sk.classList.toggle("an", !!stand.stumm);
+    sk.textContent = stand.stumm ? "Stumm" : "Ton";
+    sk.title = stand.stumm ? "Stummschaltung aufheben" : "Stumm schalten";
+  }
+  // An der Grenze den Knopf ausgrauen, statt ihn wirkungslos zu lassen
+  const lauter = $("#b-lauter");
+  if(lauter) lauter.disabled = !stand.stumm && stand.wert >= stand.grenze;
+  const leiser = $("#b-leiser");
+  if(leiser) leiser.disabled = !stand.stumm && stand.wert <= 0;
+}
+
+/* Was bedienbar ist, sagt das Gerät (StreamInfo/ModeInfo): eine
+   Analogquelle kann nicht springen, Radio nicht pausieren. */
+function bedienbarkeit(d){
+  const s = d && d.steuerung ? d.steuerung : {};
+  const laeuft = !!(d && d.laeuft);
+  $("#b-spiel").textContent = String((d||{}).transport||"").toLowerCase() === "playing" ? "❙❙" : "▶";
+  $("#b-weiter").disabled  = !laeuft || s.kann_weiter === false;
+  $("#b-zurueck").disabled = !laeuft || s.kann_zurueck === false;
+  $("#b-stop").disabled    = !laeuft;
+  const springbar = laeuft && s.kann_springen !== false;
+  $("#fortschritt").parentElement.classList.toggle("bedienbar", springbar);
+  $("#balkenrahmen").dataset.springbar = springbar ? "1" : "0";
+}
+
+function bedienungSichtbar(){
+  $("#bedienung").hidden = !steuerungAn || lesemodus;
+}
+
+function lesemodusSetzen(an, merken){
+  lesemodus = an;
+  document.body.classList.toggle("lesenur", an);
+  $("#btn-lesen").classList.toggle("an", an);
+  $("#btn-lesen").textContent = an ? "Nur lesen: an" : "Nur lesen";
+  bedienungSichtbar();
+  $("#s-suche").hidden = !steuerungAn || an;
+  document.body.classList.toggle("springbar", steuerungAn && !an);
+  if(typeof verlaufLaden === "function") verlaufLaden();
+  if(merken){ try{ localStorage.setItem("liner-lesemodus", an?"1":"0"); }catch(e){} }
+}
+
+// --- Knöpfe ---
+$("#b-spiel").onclick   = e => befehl("/api/steuerung/umschalten", null, e.currentTarget);
+$("#b-stop").onclick    = e => befehl("/api/steuerung/stop", null, e.currentTarget);
+$("#b-weiter").onclick  = e => befehl("/api/steuerung/weiter", null, e.currentTarget);
+$("#b-zurueck").onclick = e => befehl("/api/steuerung/zurueck", null, e.currentTarget);
+$("#b-lauter").onclick  = e => befehl("/api/steuerung/lautstaerke/lauter", {schritt:1}, e.currentTarget);
+$("#b-leiser").onclick  = e => befehl("/api/steuerung/lautstaerke/leiser", {schritt:1}, e.currentTarget);
+$("#b-stumm").onclick   = e => befehl("/api/steuerung/lautstaerke/stumm", null, e.currentTarget);
+$("#btn-lesen").onclick = () => lesemodusSetzen(!lesemodus, true);
+
+// Klick in die Fortschrittsleiste: an die getroffene Stelle springen
+$("#balkenrahmen").addEventListener("click", e => {
+  if(!steuerungAn || lesemodus) return;
+  if(e.currentTarget.dataset.springbar !== "1") return;
+  const dauer = standRef && standRef.dauer;
+  if(!dauer) return;
+  const k = e.currentTarget.getBoundingClientRect();
+  const anteil = Math.min(1, Math.max(0, (e.clientX - k.left) / k.width));
+  befehl("/api/steuerung/springen", {sekunde: Math.round(anteil * dauer)});
+});
+
+// Tastatur: Leertaste Play/Pause, Pfeile Titel, +/- Lautstärke
+document.addEventListener("keydown", e => {
+  if(!steuerungAn || lesemodus) return;
+  if(e.target.matches("input,textarea,select")) return;
+  const k = {" ":"umschalten", "ArrowRight":"weiter", "ArrowLeft":"zurueck"}[e.key];
+  if(k){ e.preventDefault(); befehl("/api/steuerung/" + k); return; }
+  if(e.key === "+" || e.key === "ArrowUp"){
+    e.preventDefault(); befehl("/api/steuerung/lautstaerke/lauter", {schritt:1});
+  } else if(e.key === "-" || e.key === "ArrowDown"){
+    e.preventDefault(); befehl("/api/steuerung/lautstaerke/leiser", {schritt:1});
+  } else if(e.key.toLowerCase() === "m"){
+    befehl("/api/steuerung/lautstaerke/stumm");
+  }
+});
+
+/* ---------------------------------------------------------------- Merkliste
+   "Gefaellt mir" fuer einzelne Titel. Der Zustand kommt vom Server, nicht
+   aus dem Browser - so sieht jedes Geraet dasselbe. */
+let favAnzahl = 0;
+
+function herzZeichnen(inhalt){
+  const k = $("#b-herz");
+  if(!k) return;
+  const geht = !!(inhalt && (inhalt.aktueller_pfad || inhalt.titel));
+  k.disabled = !geht;
+  k.classList.toggle("an", !!(inhalt && inhalt.favorit));
+  k.title = !geht ? "Kein Titel erkennbar"
+          : (inhalt.favorit ? "Aus der Merkliste entfernen" : "Diesen Titel merken");
+}
+
+async function favUmschalten(pfad, knopf){
+  if(Date.now() < bedienSperreBis) return;
+  bedienSperreBis = Date.now() + 300;
+  if(knopf) knopf.disabled = true;
+  try{
+    const r = await fetch("/api/favorit", {method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify(pfad ? {pfad} : {})});
+    const d = await r.json().catch(() => ({}));
+    if(!r.ok || d.ok === false){
+      meldung(d.grund || "Nicht gespeichert.");
+      return;
+    }
+    favAnzahl = d.anzahl ?? favAnzahl;
+    if(knopf) knopf.classList.toggle("an", !!d.gesetzt);
+    if(!pfad) $("#b-herz").classList.toggle("an", !!d.gesetzt);
+    // Gegenprobe beim Server: die Liste ist die Wahrheit, nicht der Klick
+    favListeLaden();
+  }catch(e){
+    meldung("Nicht gespeichert.");
+  }finally{
+    if(knopf) knopf.disabled = false;
+  }
+}
+
+function favListeLaden(){
+  fetch("/api/favoriten").then(r => r.json()).then(d => {
+    favAnzahl = d.anzahl || 0;
+    $("#favzahl").textContent = favAnzahl === 1 ? "1 Titel" : favAnzahl + " Titel";
+    $("#s-merkliste").hidden = favAnzahl === 0;
+    const h = (d.eintraege || []).map(e => {
+      const wer = [e.artist, e.album].filter(Boolean).map(esc).join(" · ");
+      return `<div class="fz"><span><span>${esc(e.titel||"—")}</span>`+
+             (wer ? `<div class="wer">${wer}</div>` : "") + `</span>`+
+             (e.datei_fehlt ? `<span class="weg">Datei fehlt</span>`
+              : (!e.res_url ? `<span class="weg">nicht einreihbar</span>` : `<span></span>`))+
+             `<span class="dauer">${e.dauer_s?zeit(e.dauer_s):""}</span></div>`;
+    }).join("");
+    $("#favliste").innerHTML = h || `<div class="leer">Noch nichts gemerkt.</div>`;
+    // Herzen in der Trackliste nachziehen
+    const pfade = new Set((d.eintraege||[]).map(e => e.pfad).filter(Boolean));
+    document.querySelectorAll("#tracks .fav").forEach(b =>
+      b.classList.toggle("an", pfade.has(b.dataset.pfad)));
+  }).catch(()=>{});
+}
+
+$("#b-herz").onclick = e => favUmschalten(null, e.currentTarget);
+
+// Herz in der Trackliste (die Liste wird neu gezeichnet, darum delegiert)
+$("#tracks").addEventListener("click", e => {
+  const b = e.target.closest(".fav");
+  if(!b) return;
+  e.stopPropagation();
+  favUmschalten(b.dataset.pfad, b);
+});
+
+/* Abgleich mit Navidrome. Beide Richtungen, zusammenführend: was hier
+   gemerkt ist, wird dort markiert - und was dort markiert ist, kommt
+   hierher. Entfernt wird nichts. */
+$("#fav-abgleich").onclick = async e => {
+  const k = e.currentTarget;
+  const alt = k.textContent;
+  k.disabled = true; k.textContent = "gleicht ab …";
+  try{
+    const r = await fetch("/api/favoriten/abgleich", {method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({richtung:"beide"})});
+    const d = await r.json().catch(() => ({}));
+    if(!r.ok || d.ok === false){
+      meldung(d.grund || "Abgleich nicht möglich.", 8000);
+    } else {
+      const teile = [];
+      if(d.hin) teile.push(d.hin + " nach Navidrome");
+      if(d.her) teile.push(d.her + " von Navidrome");
+      if(d.zusammengefuehrt) teile.push(d.zusammengefuehrt + " Dublette(n) zusammengeführt");
+      if(d.nicht_zuzuordnen) teile.push(d.nicht_zuzuordnen + " nicht zuzuordnen");
+      if(d.fehler) teile.push(d.fehler + " fehlgeschlagen");
+      meldung(teile.length ? teile.join(" · ") : "Nichts zu tun – alles gleich.", 8000);
+      favListeLaden();
+    }
+  }catch(err){ meldung("Abgleich nicht möglich.", 6000); }
+  finally{ k.disabled = false; k.textContent = alt; }
+};
+
+$("#fav-abspielen").onclick = async e => {
+  const k = e.currentTarget;
+  k.disabled = true;
+  const alt = k.textContent;
+  k.textContent = "wird eingereiht …";
+  try{
+    const r = await fetch("/api/favoriten/abspielen", {method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ersetzen:true})});
+    const d = await r.json().catch(() => ({}));
+    if(!r.ok || d.ok === false) meldung(d.grund || "Nicht eingereiht.", 8000);
+    else {
+      let t = d.gesetzt + " Titel eingereiht";
+      if(d.fehler) t += ", " + d.fehler + " fehlgeschlagen";
+      if(d.uebergangen) t += ", " + d.uebergangen + " ohne Adresse übergangen";
+      meldung(t, 8000);
+    }
+  }catch(err){ meldung("Nicht eingereiht.", 6000); }
+  finally{ k.disabled = false; k.textContent = alt; }
+};
+
+/* ---------------------------------------------------------------- Punkt 6
+   Klick auf eine Trackzeile springt in der Warteschlange zu diesem Titel.
+   Nur wenn die Warteschlange ihn enthält - sonst sagt die Meldung das.
+   Ungefragt etwas einzureihen wäre eine Überraschung. */
+$("#tracks").addEventListener("click", async e => {
+  if(!steuerungAn || lesemodus) return;
+  if(e.target.closest(".fav")) return;          // Herz hat Vorrang
+  const li = e.target.closest("li");
+  if(!li || !li.dataset.pfad) return;
+  if(Date.now() < bedienSperreBis) return;
+  bedienSperreBis = Date.now() + 450;
+  li.style.opacity = ".55";
+  try{
+    const r = await fetch("/api/steuerung/zu-titel", {method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({pfad: li.dataset.pfad})});
+    const d = await r.json().catch(() => ({}));
+    if(!r.ok || d.ok === false)
+      meldung(d.grund || "Sprung nicht möglich.", 5000);
+  }catch(err){ meldung("Sprung nicht möglich.", 4000); }
+  finally{ li.style.opacity = ""; }
+});
+
+/* ---------------------------------------------------------------- Punkt 8
+   Suche über die Bibliothek. Aufgelöst wird beim MinimServer; die
+   Oberfläche schickt nur Album und Interpret zurück, keine URLs - so kann
+   von außen keine beliebige Adresse in die Warteschlange gelegt werden. */
+let suchTimer = null, letzteSuche = "";
+
+function suchtrefferHtml(g){
+  const titelzeile = g.titel.slice(0, 4).map(t => esc(t.titel)).join(" · ")
+      + (g.anzahl > 4 ? " · …" : "");
+  return `<div class="streffer" data-album="${esc(g.album||"")}" data-artist="${esc(g.artist||"")}">`+
+    `<div class="kopf"><span class="al">${esc(g.album||"—")}</span>`+
+    `<span class="ar">${esc(g.artist||"")}</span>`+
+    `<span class="nz">${g.anzahl} ${g.anzahl===1?"Titel":"Titel"}</span>`+
+    `<span class="tun">`+
+      `<button data-tun="ersetzen">Album abspielen</button>`+
+      `<button data-tun="anhaengen">Album anhängen</button>`+
+    `</span></div>`+
+    `<div class="tl">${titelzeile}</div></div>`;
+}
+
+async function suchen(text){
+  if(text.length < 2){
+    $("#suchergebnis").innerHTML = "";
+    $("#suchhinweis").textContent = "";
+    return;
+  }
+  $("#suchhinweis").textContent = "sucht …";
+  try{
+    const r = await fetch("/api/bibliothek/suche?q=" + encodeURIComponent(text));
+    const d = await r.json();
+    if(text !== letzteSuche) return;            // veraltete Antwort
+    const t = d.treffer || [];
+    $("#suchhinweis").textContent = t.length
+        ? (d.gesamt > 0 ? t.length + " Alben · " + d.gesamt + " Titel gefunden" : "")
+        : (d.fehler ? "Suche nicht möglich." : "Nichts gefunden.");
+    $("#suchergebnis").innerHTML = t.map(suchtrefferHtml).join("");
+  }catch(e){
+    $("#suchhinweis").textContent = "Suche nicht möglich.";
+  }
+}
+
+$("#suchfeld").addEventListener("input", e => {
+  const text = e.target.value.trim();
+  letzteSuche = text;
+  if(suchTimer) clearTimeout(suchTimer);
+  // Nicht bei jedem Tastendruck fragen - MinimServer durchsucht 48.000 Titel.
+  suchTimer = setTimeout(() => suchen(text), 350);
+});
+
+$("#suchergebnis").addEventListener("click", async e => {
+  const k = e.target.closest("button[data-tun]");
+  if(!k) return;
+  const kasten = k.closest(".streffer");
+  const alt = k.textContent;
+  k.disabled = true; k.textContent = "…";
+  try{
+    const r = await fetch("/api/bibliothek/abspielen", {method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({album: kasten.dataset.album,
+                            artist: kasten.dataset.artist,
+                            modus: k.dataset.tun})});
+    const d = await r.json().catch(() => ({}));
+    if(!r.ok || d.ok === false) meldung(d.grund || "Nicht eingereiht.", 6000);
+    else {
+      let m = d.gesetzt + (k.dataset.tun === "ersetzen" ? " Titel eingereiht" : " Titel angehängt");
+      if(d.fehler) m += ", " + d.fehler + " fehlgeschlagen";
+      meldung(m, 5000);
+      verlaufLaden();
+    }
+  }catch(err){ meldung("Nicht eingereiht.", 5000); }
+  finally{ k.disabled = false; k.textContent = alt; }
+});
+
+function wannText(sek){
+  const d = (Date.now()/1000) - sek;
+  if(d < 3600)  return Math.max(1, Math.round(d/60)) + " Min";
+  if(d < 86400) return Math.round(d/3600) + " Std";
+  return Math.round(d/86400) + " Tg";
+}
+
+function verlaufLaden(){
+  fetch("/api/verlauf").then(r => r.json()).then(d => {
+    const e = d.eintraege || [];
+    $("#s-verlauf").hidden = e.length === 0;
+    $("#verlauf").innerHTML = e.map(v =>
+      `<div class="vz" data-album="${esc(v.album||"")}" data-artist="${esc(v.artist||"")}">`+
+      `<span>${esc(v.album||"—")}</span><span class="ar">${esc(v.artist||"")}</span>`+
+      `<span class="wann">${wannText(v.zuletzt)}</span>`+
+      (steuerungAn && !lesemodus ? `<button data-tun="ersetzen">abspielen</button>` : "")+
+      `</div>`).join("");
+  }).catch(()=>{});
+}
+
+$("#verlauf").addEventListener("click", async e => {
+  const k = e.target.closest("button[data-tun]");
+  if(!k) return;
+  const z = k.closest(".vz");
+  k.disabled = true;
+  try{
+    const r = await fetch("/api/bibliothek/abspielen", {method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({album: z.dataset.album, artist: z.dataset.artist,
+                            modus: "ersetzen"})});
+    const d = await r.json().catch(() => ({}));
+    if(!r.ok || d.ok === false) meldung(d.grund || "Nicht eingereiht.", 6000);
+    else meldung(d.gesetzt + " Titel eingereiht", 4000);
+  }catch(err){ meldung("Nicht eingereiht.", 5000); }
+  finally{ k.disabled = false; }
+});
+
+favListeLaden();
+verlaufLaden();
+
+// Startzustand der Steuerung holen
+fetch("/api/steuerung/stand").then(r => r.json()).then(d => {
+  steuerungAn = !!d.an;
+  let l = false;
+  try{ l = localStorage.getItem("liner-lesemodus") === "1"; }catch(e){}
+  const u = new URLSearchParams(location.search);
+  if(u.has("lesen")) l = u.get("lesen") !== "0";
+  lesemodusSetzen(l, false);
+  if(d.lautstaerke) volZeichnen(d.lautstaerke);
+  if(!steuerungAn) $("#btn-lesen").hidden = true;
+  bedienungSichtbar();
+  // Suchen und Einreihen gehoert zur Steuerung: im Lesemodus verborgen.
+  $("#s-suche").hidden = !steuerungAn || lesemodus;
+  document.body.classList.toggle("springbar", steuerungAn && !lesemodus);
+  verlaufLaden();
+}).catch(() => { steuerungAn = false; bedienungSichtbar(); });
+
+// Lautstärke gelegentlich nachziehen – sie hat kein eigenes Abo
+setInterval(() => {
+  if(!steuerungAn || lesemodus || document.hidden) return;
+  fetch("/api/steuerung/stand").then(r => r.json())
+    .then(d => { if(d.lautstaerke) volZeichnen(d.lautstaerke); }).catch(()=>{});
+}, 20000);
+
+fetch("/api/now").then(r => r.json()).then(zeichne).catch(()=>{});
+verbinde();
+</script>
+<div id="fussleiste" hidden>
+<div id="hoerleiste" aria-live="polite">
+  <span class="ring" id="hl-ring" aria-hidden="true"></span>
+  <span class="satz" id="hl-satz"></span>
+  <span class="instr" id="hl-instr"></span>
+  <button class="zu" id="hl-zu" title="Für diesen Titel ausblenden" aria-label="Ausblenden">×</button>
+</div>
+<div id="spielleiste">
+  <img class="fcover" id="fcover" alt="">
+  <div class="ftexte">
+    <div class="ftitel" id="ftitel"></div>
+    <div class="fkuenstler" id="fkuenstler"></div>
+  </div>
+  <div class="fmitte" id="fmitte"></div>
+  <div class="fplaketten" id="fplaketten"></div>
+</div>
+</div>
+</body>
+</html>

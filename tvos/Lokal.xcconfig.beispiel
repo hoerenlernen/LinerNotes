@@ -1,0 +1,12 @@
+// Vorlage. Kopieren nach Lokal.xcconfig und die eigene Team-ID eintragen:
+//
+//   cp Lokal.xcconfig.beispiel Lokal.xcconfig
+//
+// Die Team-ID findet sich in Xcode unter Settings → Accounts, oder:
+//   security find-certificate -c "Apple Development" -p \
+//     | openssl x509 -noout -subject
+// Sie steht im Feld OU (zehn Zeichen, Buchstaben und Ziffern).
+//
+// Ohne diese Datei schlägt das Signieren fehl; das Bauen für den
+// Simulator funktioniert auch ohne.
+LINER_TEAM_ID = DEINETEAMID

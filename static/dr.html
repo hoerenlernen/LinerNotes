@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DR-Übersicht</title>
+<style>
+:root{
+  --grund:#0d0f12; --blatt:#14171c; --linie:#252a32;
+  --text:#e8e6e1; --leise:#9aa1ab; --still:#6b7280; --akzent:#c9a86a;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--grund);color:var(--text);
+  font:400 15px/1.5 ui-sans-serif,system-ui,-apple-system,sans-serif;
+  padding:clamp(1rem,3vw,2.5rem)}
+.huelle{max-width:1500px;margin:0 auto}
+h1{font:600 1.7rem/1.2 ui-serif,Georgia,serif;margin-bottom:.3rem}
+.unter{color:var(--leise);font-size:.88rem;margin-bottom:1.6rem}
+.unter a{color:var(--akzent)}
+
+.leiste{display:flex;gap:.7rem;flex-wrap:wrap;align-items:center;
+  padding:.9rem 0 1.2rem;border-bottom:1px solid var(--linie);margin-bottom:.4rem}
+select,input,button{background:var(--blatt);color:var(--text);
+  border:1px solid var(--linie);border-radius:3px;padding:.42rem .6rem;
+  font:inherit;font-size:.86rem}
+button{cursor:pointer}
+button:hover,button.an{border-color:var(--akzent);color:var(--akzent)}
+label{color:var(--still);font-size:.78rem;letter-spacing:.06em;text-transform:uppercase}
+
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th{text-align:left;font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--still);font-weight:600;padding:.6rem .5rem;border-bottom:1px solid var(--linie);
+  cursor:pointer;white-space:nowrap;position:sticky;top:0;background:var(--grund)}
+th:hover{color:var(--akzent)}
+th .pfeil{opacity:.5;font-size:.65rem}
+td{padding:.46rem .5rem;border-bottom:1px solid rgba(37,42,50,.5);font-size:.9rem}
+tr:hover td{background:rgba(255,255,255,.02)}
+td.re{text-align:right}
+.dr{display:inline-block;min-width:2.6rem;text-align:center;padding:.14rem .42rem;
+  border-radius:3px;font-weight:600;font-size:.84rem;border:1px solid}
+.dr.rot   {color:#ff9b96;border-color:#7d2f2b;background:rgba(160,52,46,.18)}
+.dr.orange{color:#ffc28a;border-color:#7d5324;background:rgba(160,96,36,.16)}
+.dr.gelb  {color:#ffe49b;border-color:#736327;background:rgba(150,128,48,.14)}
+.dr.gruen {color:#a7dda7;border-color:#2f6b34;background:rgba(58,122,64,.15)}
+.spanne{color:var(--still);font-size:.78rem}
+.hires{color:var(--akzent);font-size:.72rem;letter-spacing:.04em}
+tr.auffaellig{background:rgba(160,52,46,.07)}
+tr.auffaellig td:first-child{box-shadow:inset 2px 0 0 #a0342e}
+.warnung{color:#ff9b96;font-size:.72rem;margin-left:.3rem}
+.vergleich{color:var(--still);font-size:.78rem}
+.vergleich:hover{color:var(--akzent)}
+.hinweis{margin-top:1.6rem;color:var(--still);font-size:.8rem;line-height:1.6;
+  padding-top:1rem;border-top:1px solid var(--linie);max-width:80ch}
+.skala{display:flex;gap:.5rem;flex-wrap:wrap;margin:.6rem 0 0}
+</style>
+</head>
+<body>
+<div class="huelle">
+  <h1>Dynamic Range</h1>
+  <div class="unter">
+    <span id="zahlen">lädt …</span> ·
+    <a href="/">zurück zur Now-Playing-Anzeige</a>
+  </div>
+
+  <div class="leiste">
+    <label for="genre">Genre</label>
+    <select id="genre"><option value="">alle</option></select>
+
+    <label for="qual">Qualität</label>
+    <select id="qual">
+      <option value="">alle</option>
+      <option value="cd">16 bit / 44,1 kHz</option>
+      <option value="hires">Hi-Res</option>
+    </select>
+
+    <input id="suche" type="search" placeholder="Künstler oder Album …" style="min-width:16rem">
+    <button id="nurauf">nur auffällige</button>
+  </div>
+
+  <table>
+    <thead><tr>
+      <th data-s="dr">DR <span class="pfeil">▲</span></th>
+      <th data-s="artist">Künstler</th>
+      <th data-s="album">Album</th>
+      <th data-s="jahr">Jahr</th>
+      <th data-s="genre">Genre</th>
+      <th data-s="tracks" class="re">Titel</th>
+      <th>Auflösung</th>
+      <th></th>
+    </tr></thead>
+    <tbody id="zeilen"></tbody>
+  </table>
+
+  <div class="hinweis">
+    <div class="skala">
+      <span class="dr rot">≤7</span><span class="dr orange">8–9</span>
+      <span class="dr gelb">10–11</span><span class="dr gruen">≥12</span>
+      <span style="color:var(--leise)">— Skala der Dynamic Range Database</span>
+    </div>
+    <p style="margin-top:.9rem">
+      Gemessen nach der TT-DR-Methode (Pleasurize): Spitzenwert minus quadratisches
+      Mittel der lautesten 20 % aller 3-Sekunden-Blöcke, je Kanal, dann über alle
+      Titel eines Albums gemittelt. Ein niedriger Wert heißt stark komprimiertes
+      Mastering — <em>nicht</em> schlechte Musik. Manche Genres sind von Natur aus
+      dynamikarm.
+    </p>
+    <p style="margin-top:.6rem">
+      Rot hinterlegte Zeilen sind <strong>Hi-Res-Alben mit DR 8 oder schlechter</strong>:
+      dort steht hohe Auflösung gegen plattgedrücktes Mastering — der Aufpreis für
+      24 bit bringt dann wenig.
+    </p>
+  </div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => (s??"").toString().replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+let alle = [], sort = {feld:"dr", ri:"asc"}, nurAuf = false;
+
+async function laden(){
+  const p = new URLSearchParams();
+  if($("#genre").value) p.set("genre", $("#genre").value);
+  if($("#qual").value)  p.set("qualitaet", $("#qual").value);
+  p.set("sortierung", sort.feld); p.set("richtung", sort.ri);
+  const r = await fetch("/api/dr?" + p);
+  const d = await r.json();
+  alle = d.alben;
+  $("#zahlen").textContent =
+    `${d.gemessen} von ${d.gesamt} Alben gemessen` +
+    (d.gemessen < d.gesamt ? " – Messung läuft noch" : "");
+  genresFuellen();
+  zeichne();
+}
+
+function genresFuellen(){
+  const sel = $("#genre");
+  if(sel.options.length > 1) return;
+  const g = [...new Set(alle.flatMap(a => (a.genre||"").split("/").map(x=>x.trim())).filter(Boolean))].sort();
+  g.forEach(x => sel.add(new Option(x, x)));
+}
+
+function zeichne(){
+  const q = $("#suche").value.toLowerCase().trim();
+  let liste = alle;
+  if(q) liste = liste.filter(a =>
+      (a.artist||"").toLowerCase().includes(q) || (a.album||"").toLowerCase().includes(q));
+  if(nurAuf) liste = liste.filter(a => a.auffaellig);
+
+  $("#zeilen").innerHTML = liste.map(a => {
+    const spanne = (a.min!=null && a.max!=null && a.min!==a.max)
+        ? ` <span class="spanne">${a.min}–${a.max}</span>` : "";
+    const suchbegriff = encodeURIComponent(((a.artist||"")+" "+(a.album||"")).trim());
+    return `<tr class="${a.auffaellig?'auffaellig':''}">
+      <td><span class="dr ${a.stufe}">${a.dr}</span>${spanne}${a.auffaellig?'<span class="warnung">Hi-Res &amp; flach</span>':''}</td>
+      <td>${esc(a.artist)}</td>
+      <td>${esc(a.album)}</td>
+      <td>${esc(a.jahr)}</td>
+      <td style="color:var(--leise)">${esc(a.genre)}</td>
+      <td class="re" style="color:var(--still)">${a.tracks}</td>
+      <td>${esc(a.qualitaet)}${a.hires?' <span class="hires">Hi-Res</span>':''}</td>
+      <td><a class="vergleich" target="_blank" rel="noopener"
+             href="https://dr.loudness-war.info/album/list?search=${suchbegriff}">vergleichen →</a></td>
+    </tr>`;
+  }).join("");
+}
+
+document.querySelectorAll("th[data-s]").forEach(th => th.onclick = () => {
+  const f = th.dataset.s;
+  sort.ri = (sort.feld === f && sort.ri === "asc") ? "desc" : "asc";
+  sort.feld = f;
+  document.querySelectorAll("th .pfeil").forEach(p => p.remove());
+  th.insertAdjacentHTML("beforeend", ` <span class="pfeil">${sort.ri==="asc"?"▲":"▼"}</span>`);
+  laden();
+});
+$("#genre").onchange = laden;
+$("#qual").onchange = laden;
+$("#suche").oninput = zeichne;
+$("#nurauf").onclick = () => { nurAuf = !nurAuf; $("#nurauf").classList.toggle("an", nurAuf); zeichne(); };
+laden();
+setInterval(laden, 60000);   // die Messung läuft noch – Zahlen nachziehen
+</script>
+</body>
+</html>

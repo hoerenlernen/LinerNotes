@@ -1,0 +1,2 @@
+// Öffentliche Basis; persönliche Signierung bleibt lokal.
+#include? "Lokal.xcconfig"

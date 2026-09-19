@@ -1,0 +1,113 @@
+# Liner Notes – was NICHT ins Repo gehört
+#
+# Grundsatz: Das Repo ist privat, wird aber geführt, als könnte es später
+# öffentlich werden. Was einmal in der Historie steht, bekommt man nicht
+# mehr heraus.
+
+# ---------------------------------------------------------------- Secrets
+.env
+.env.*
+!.env.beispiel
+*.key
+*.pem
+*.p12
+*.mobileprovision
+*.cer
+*.certSigningRequest
+secrets
+zugangsdaten*
+
+# ------------------------------------------------- Konfiguration mit Hosts
+# nginx-Blöcke tragen echte Hostnamen und Zertifikatspfade.
+nginx/
+*.nginx
+*.conf.lokal
+
+# ------------------------------------------------------------- Datenbanken
+# Index, DR-Werte, Hörverlauf, Merkliste, Verdachtsliste, Tag-Sicherungen.
+# Sie enthalten den vollständigen Bestand samt Dateipfaden.
+data/
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+tagvault*.json*
+
+# ------------------------------------------------------- Zwischenspeicher
+cover/
+cover-klein/
+*.jpg
+*.jpeg
+*.png
+*.webp
+# Ausnahme: das App-Symbol gehoert zum Programm, nicht zum Bestand.
+!tvos/**/*.png
+
+# ------------------------------------------------------------------ Logs
+log/
+*.log
+pflege.log
+
+# ------------------------------------------------------------ Temporäres
+*.bak
+*.bak-*
+*.bak[0-9]*
+*.tmp
+*.orig
+*.rej
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.DS_Store
+
+# ------------------------------------------------- Bilder mit privatem Inhalt
+# Bildschirmfotos zeigen Bestand, Dateipfade und Wohnraum.
+screenshots/
+liner-screenshots/
+*.HEIC
+*.heic
+
+# ----------------------------------------------------------------- Xcode
+tvos/**/xcuserdata/
+tvos/**/*.xcuserdatad/
+tvos/**/DerivedData/
+tvos/build/
+tvos/**/.swiftpm/
+*.xcworkspace/xcuserdata/
+
+# Lokale Xcode-Einstellungen: enthält die Apple-Team-ID des Entwicklers.
+# Die Vorlage Lokal.xcconfig.beispiel wird versioniert.
+tvos/Lokal.xcconfig
+Lokal.xcconfig
+
+# Sicherungskopien aus der Entwicklung. Sobald der Stand committet ist,
+# ist die Historie die Sicherung - die Kopien bleiben nur lokal liegen.
+*.vor-neutral
+*.bak-neutral
+*.vor-*
+*.vor-reparatur-*
+
+# Arbeitsdokumentation und Arbeitsmaterial.
+#
+# HANDOVER.md enthält Netzangaben, Pfade und Bestandszahlen; die Dateien
+# unter doku/ enthalten Teile der Sammlung (Verdachtsliste) und Rohdaten
+# des Players. Beides ist Arbeitsmaterial, kein Code, und jederzeit neu
+# erzeugbar.
+HANDOVER.md
+HANDOVER.md.*
+doku/*
+# Ausnahme: Die Formatbeschreibung der Hoerhinweise gehoert zum Programm -
+# ohne sie ist nicht nachvollziehbar, was app/hoerenlernen.py einliest.
+# Sie enthaelt einige Albumnamen als Beispiele, sonst nichts aus der
+# Sammlung.
+!doku/hoerhinweise-format.md
+
+# Gepruefte oeffentliche Dokumentation und ausgewaehlte Bilder.
+!doku/geraeteanbindung.md
+!doku/installation.md
+!doku/screenshots/
+!doku/screenshots/*.png
+!doku/beispiele/
+!doku/beispiele/*

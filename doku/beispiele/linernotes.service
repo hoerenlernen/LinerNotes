@@ -1,0 +1,14 @@
+[Unit]
+Description=LinerNotes
+After=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/LinerNotes
+ExecStart=%h/LinerNotes/.venv/bin/python %h/LinerNotes/bin/server.py
+Restart=on-failure
+RestartSec=10
+UMask=0077
+
+[Install]
+WantedBy=default.target
