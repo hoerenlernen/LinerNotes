@@ -177,3 +177,21 @@ For listening texts and additional recordings, see the independent [Hören-Lerne
 LinerNotes is free software under the **GNU General Public License, version 3 (GPL-3.0-only)**. Copyright © 2026 Goran Ristic and contributors. Use, modification and redistribution are permitted under the [GPLv3](LICENSE). Distributing derivative versions carries the GPL's source-code and licensing obligations. Copyright notices must be retained. Commercial use and sale are allowed; the official release is offered at no charge.
 
 Separately obtained Hören-Lernen texts retain their CC-BY-NC-SA-4.0 licence. Third-party album artwork and accompanying texts in screenshots are not covered by the software licence. See [notices](NOTICE.md).
+
+### Neue Alben / Newly imported albums
+
+Neue Alben erfordern keinen Neubau der Apple-TV-App. Der Albumindex liegt auf
+ dem Server und wird mit `python3 bin/index.py` aktualisiert (mit der bestehenden
+LinerNotes-Konfiguration). Importwerkzeuge können diesen Befehl nach einem
+abgeschlossenen Import aufrufen. Bis dahin kann die Now-Playing-Anzeige ein
+vorhandenes `cover.jpg`, `cover.jpeg`, `cover.png`, `folder.jpg` oder `folder.png`
+im Titelordner direkt anzeigen. Trackliste, DR und angereicherte Informationen
+benötigen weiterhin den Index beziehungsweise die zugehörigen Verarbeitungsschritte.
+
+New albums do not require rebuilding the Apple TV app. Update the server-side
+album index with `python3 bin/index.py`, using your existing LinerNotes
+configuration. Import tools can invoke this command after a completed import.
+Until then, Now Playing can display an existing `cover.jpg`, `cover.jpeg`,
+`cover.png`, `folder.jpg` or `folder.png` alongside the playing track. Track lists,
+DR measurements and enriched information still require indexing and their
+respective processing steps.

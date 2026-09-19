@@ -129,6 +129,27 @@ class ApiTests(unittest.TestCase):
         with patch.object(self.api.linn,"steuern",return_value=(True,"ok")),patch.object(self.api,"_nachfassen",new_callable=AsyncMock):
             self.assertEqual(self.client.post("/api/steuerung/play").status_code,200)
 
+    def test_unindexed_local_cover_is_served_and_preserved(self):
+        import local_cover
+        album = pathlib.Path(self.tmp.name) / "New & Bach"
+        album.mkdir(exist_ok=True)
+        track = album / "01.flac"; track.touch()
+        cover = album / "cover.jpg"; cover.write_bytes(b"test-cover")
+        token = local_cover.reference(self.tmp.name, str(track))
+        r = self.client.get("/api/cover-extern", params={"url": token})
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.content, b"test-cover")
+        self.assertTrue(r.headers["content-type"].startswith("image/jpeg"))
+        with patch.object(self.api.linn,"transport_zustand",return_value="Playing"), \
+             patch.object(self.api.linn,"quelle",return_value={}), \
+             patch.object(self.api.linn,"track",return_value=("test",{"cover_url":"http://example.test/art"})), \
+             patch.object(self.api.linn,"zeit",return_value={}), \
+             patch.object(self.api.linn,"details",return_value={}), \
+             patch.object(self.api.aufloeser,"bauen",return_value={"cover_extern":token}):
+            self.assertEqual(self.api.aktualisieren()["cover_extern"], token)
+        cover.unlink()
+        self.assertEqual(self.client.get("/api/cover-extern",params={"url":token}).status_code,404)
+
     def test_untrusted_notify_and_cover_blocked(self):
         self.assertEqual(self.client.post("/notify").status_code,403)
         self.assertEqual(self.client.get("/api/cover-extern",params={"url":"http://127.0.0.1/admin"}).status_code,403)

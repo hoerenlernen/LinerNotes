@@ -27,6 +27,7 @@ erkennbar, was Gorans Urteil ist und was von MusicBrainz, Wikipedia oder
 Last.fm kommt.
 """
 import difflib
+import local_cover
 import glob
 import html
 import json
@@ -799,13 +800,16 @@ class Aufloeser:
 
         Zuverlaessiger als der Namensabgleich: nur dieser Weg trifft bei den
         10 Album-Duplikaten der Bibliothek garantiert das richtige."""
+        if not local_cover.inside(ROOT, pfad):
+            return None
         rel = os.path.relpath(pfad, ROOT)
         kandidaten = []
         d = os.path.dirname(rel)
         while d and d not in (".", os.sep):
             kandidaten.append(d)
             d = os.path.dirname(d)
-        kandidaten.append(".")            # lose Datei in der Wurzel
+        if os.path.dirname(rel) in ("", "."):
+            kandidaten.append(".")        # nur wirklich lose Dateien
         for k in kandidaten[:3]:
             row = con.execute("SELECT * FROM album WHERE ordner=?", (k,)).fetchone()
             if row:
@@ -1154,6 +1158,7 @@ class Aufloeser:
             "eigene": eigene,
             "lyrics": titel_lyrics,
             "album_id": album_id,
+            "cover_extern": local_cover.reference(ROOT, pfad) if album_id is None else None,
             "cover": {"breite": cov["breite"], "hoehe": cov["hoehe"]} if cov else None,
             "dr": dyn,
             "tagverdacht": verdacht,

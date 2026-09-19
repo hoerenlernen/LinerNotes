@@ -27,6 +27,7 @@ import asyncio
 import json
 import logging
 import os
+import local_cover
 import re
 import time
 
@@ -273,7 +274,7 @@ def aktualisieren(ausloeser="event", folge=0):
             # was es gibt. Kein Fehler, nur weniger Inhalt.
             if not neu.get("album_id"):
                 neu["ohne_datei"] = True
-                if didl.get("cover_url"):
+                if didl.get("cover_url") and not neu.get("cover_extern"):
                     neu["cover_extern"] = didl["cover_url"]
             # Quellen ohne jede Titelinfo (AirPlay meldet oft nichts, ein
             # analoger Eingang nie): Die Anzeige soll dann NICHT mit leerem
@@ -695,6 +696,12 @@ async def dr_seite():
 @app.get("/api/cover-extern")
 async def api_cover_extern(url: str):
     """Cover nur von bekannten Geräten; kein allgemeiner LAN-Proxy."""
+    if url.startswith(local_cover.PREFIX):
+        path = local_cover.resolve(MUSIC_ROOT, url)
+        if not path:
+            return PlainTextResponse("kein Cover", status_code=404)
+        return FileResponse(path, headers={"Cache-Control": "private, max-age=60"})
+
     import urllib.parse
     hosts = {LINN_HOST, urllib.parse.urlsplit(bibliothek.basis).hostname}
     hosts.update(x.strip() for x in os.environ.get("LINER_COVER_HOSTS", "").split(",") if x.strip())
